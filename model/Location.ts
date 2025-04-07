@@ -1,3 +1,5 @@
+import { Direction } from "./direction";
+
 export class Location {
     private latitude: number;
     private longitude: number;
@@ -27,9 +29,9 @@ export class Location {
         return 0;
     }
 
-    public getDirectionTo(other: Location): string {
+    public getDirectionTo(other: Location): Direction {
         // TODO: implement
 
-        return "";
+        return new Direction(0);
     }
 }
