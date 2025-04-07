@@ -1,4 +1,4 @@
-import { CompassDirection } from "./CompassDirection";
+import { CompassDirection } from "./compass_direction";
 
 export class Direction {
     private degrees: number;
