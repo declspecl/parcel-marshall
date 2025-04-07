@@ -2,10 +2,10 @@ import { Text, View, StyleSheet } from "react-native";
 
 const styles = StyleSheet.create({});
 
-export default function Index() {
+export default function Route() {
     return (
         <View>
-            <Text>Home page</Text>
+            <Text>Route Page</Text>
         </View>
     );
 }
