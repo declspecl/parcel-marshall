@@ -1,11 +1,19 @@
 import { Location } from "./Location";
+import { Direction } from "./Direction";
 
 export class Destination extends Location {
     private travelDuration: number;
     private travelDistance: number;
-    private travelDirection: string;
+    private travelDirection: Direction;
 
-    constructor(latitude: number, longitude: number, address: string | null, travelDuration: number, travelDistance: number, travelDirection: string) {
+    constructor(
+        latitude: number,
+        longitude: number,
+        address: string | null,
+        travelDuration: number,
+        travelDistance: number,
+        travelDirection: Direction
+    ) {
         super(latitude, longitude, address);
 
         this.travelDuration = travelDuration;
@@ -21,7 +29,7 @@ export class Destination extends Location {
         return this.travelDistance;
     }
 
-    public getTravelDirection(): string {
+    public getTravelDirection(): Direction {
         return this.travelDirection;
     }
 
@@ -33,7 +41,7 @@ export class Destination extends Location {
         this.travelDistance = travelDistance;
     }
 
-    public setTravelDirection(travelDirection: string): void {
+    public setTravelDirection(travelDirection: Direction): void {
         this.travelDirection = travelDirection;
     }
 }
