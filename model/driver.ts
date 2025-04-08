@@ -1,6 +1,6 @@
 import { Location } from "./location";
-import { Destination } from "./destination";
 import { Direction } from "./direction";
+import { Destination } from "./destination";
 
 export class Driver {
     private currentLocation: Location;

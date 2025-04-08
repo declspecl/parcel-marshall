@@ -18,6 +18,6 @@ describe("Location", () => {
         const direction = location1.getDirectionTo(location2);
 
         // TODO: don't know correct answer
-        expect(direction).toBe(new Direction(50));
+        expect(direction).toEqual(new Direction(50));
     });
 });

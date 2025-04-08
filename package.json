@@ -13,7 +13,8 @@
         "prepare": "husky"
     },
     "jest": {
-        "preset": "jest-expo"
+        "preset": "jest-expo",
+        "collectCoverage": true
     },
     "dependencies": {
         "@expo/vector-icons": "^14.0.2",

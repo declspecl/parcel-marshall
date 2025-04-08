@@ -19,7 +19,7 @@ export default function RootLayout() {
             <Tabs.Screen
                 name="route"
                 options={{
-                    tabBarLabel: "Map",
+                    tabBarLabel: "Route",
                     tabBarIcon: ({ color, size }) => <Ionicons name="map" size={size} color={color} />
                 }}
             />
