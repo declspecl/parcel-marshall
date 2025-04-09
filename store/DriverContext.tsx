@@ -104,9 +104,9 @@ interface DriverCtxProviderProps {
 
 function DriverCtxProvider({ children }: DriverCtxProviderProps) {
     const [driverState, driverDispatch] = useReducer<DriverReducerType>(driverStateReducer, {
-        currentLocation: new Location(5, 5, null),
+        currentLocation: { latitude: 5, longitude: 5, address: null },
         destinations: [],
-        direction: new Direction(50)
+        direction: { degrees: 50 }
     });
 
     function updateLocation(location: Location) {

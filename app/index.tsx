@@ -10,8 +10,8 @@ export default function Index() {
     return (
         <View>
             <Text>Home page</Text>
-            <Text>{driver.direction.getDegrees()}</Text>
-            <Button title="change" onPress={() => updateDirection(new Direction(100))} />
+            <Text>{driver.direction.degrees}</Text>
+            <Button title="change" onPress={() => updateDirection({ degrees: 100 })} />
         </View>
     );
 }

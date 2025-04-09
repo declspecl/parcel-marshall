@@ -30,6 +30,7 @@ export function sortDestinationsByProximity(self: Driver): Driver {
 }
 
 export function sortDestinationsByFastestRoute(self: Driver): Driver {
+    // TODO implement
     return self;
 }
 
