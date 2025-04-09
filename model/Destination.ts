@@ -1,5 +1,5 @@
-import { Location } from "./location";
-import { Direction } from "./direction";
+import { Location } from "./Location";
+import { Direction } from "./Direction";
 
 export class Destination extends Location {
     private travelDuration: number;
