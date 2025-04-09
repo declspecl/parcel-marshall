@@ -12,48 +12,21 @@
  *  we just vibe 😎
  */
 
+import { Destination } from "@/model/Destination";
+import { useDriver } from "@/store/DriverContext";
 import React, { useState } from "react";
 import { Text, View, StyleSheet, FlatList, Pressable, Modal, TextInput } from "react-native";
 
 export default function Route() {
+    const { driver, addDestination, removeDestination } = useDriver();
+    const destinations = driver.destinations;
+
     const [modalVisible, setModalVisible] = useState(false);
     const [address, setAddress] = useState("");
 
     //mock data to get a grip on the UI
     // this would be replaced with actual data from your API or state management
     //but you know me 😎
-    const [destinations, setDestinations] = useState([
-        {
-            id: "1",
-            address: "318 Meadow Brook Rd, Rochester, MI 48309",
-            distance: "30mi",
-            direction: "NE"
-        },
-        {
-            id: "2",
-            address: "Anton’s Discrete Math Asylum, UA 01001",
-            distance: "12mi",
-            direction: "NW"
-        },
-        {
-            id: "3",
-            address: "Bernard's Cool Car, Rochester, MI 48309",
-            distance: "69mi",
-            direction: "W"
-        },
-        {
-            id: "4",
-            address: "Gavin's Rust Hideout, Rochester, MI 48309",
-            distance: "404mi",
-            direction: "SE"
-        },
-        {
-            id: "5",
-            address: "318 Meadow Brook Rd, Rochester, MI 48309",
-            distance: "1mi",
-            direction: "S"
-        }
-    ]);
 
     const handleAdd = () => {
         console.log("Add destination:", address);
@@ -62,8 +35,9 @@ export default function Route() {
         // you’d actually update state here
     };
 
-    const handleRemove = (id: string) => {
-        setDestinations(destinations.filter((destination) => destination.id !== id));
+    const handleRemove = (destination: Destination) => {
+        removeDestination(destination);
+        // setDestinations(destinations.filter((destination) => destination.id !== id));
     };
     //will update title and text to be more relevant to the app
     //we want a professional look and feel, not a meme fest
@@ -79,14 +53,14 @@ export default function Route() {
 
             <FlatList
                 data={destinations}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item) => item.address || "a"}
                 renderItem={({ item }) => (
                     <View style={styles.card}>
                         <Text>{item.address}</Text>
                         <Text>
-                            {item.distance} 🧭 {item.direction}
+                            {item.travelDistance} 🧭 {item.travelDirection.degrees}
                         </Text>
-                        <Pressable style={styles.removeBtn} onPress={() => handleRemove(item.id)}>
+                        <Pressable style={styles.removeBtn} onPress={() => handleRemove(item)}>
                             <Text>❌</Text>
                         </Pressable>
                     </View>

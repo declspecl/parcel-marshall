@@ -9,8 +9,9 @@ import {
     updateDirection,
     updateLocation
 } from "@/model/Driver";
-import { Location } from "@/model/Location";
+import { getDistanceFrom, Location } from "@/model/Location";
 import { createContext, useContext, useReducer } from "react";
+import { LayoutAnimation } from "react-native";
 
 type DriverState = Driver;
 
@@ -105,7 +106,40 @@ interface DriverCtxProviderProps {
 function DriverCtxProvider({ children }: DriverCtxProviderProps) {
     const [driverState, driverDispatch] = useReducer<DriverReducerType>(driverStateReducer, {
         currentLocation: { latitude: 5, longitude: 5, address: null },
-        destinations: [],
+        destinations: [
+            {
+                latitude: 4,
+                longitude: 5,
+                travelDuration: 20,
+                address: "318 Meadow Brook Rd, Rochester, MI 48309",
+                travelDistance: 30,
+                travelDirection: { degrees: 50 }
+            },
+            {
+                latitude: 4,
+                longitude: 5,
+                travelDuration: 20,
+                address: "Anton’s Discrete Math Asylum, UA 01001",
+                travelDistance: 12,
+                travelDirection: { degrees: 50 }
+            },
+            {
+                latitude: 4,
+                longitude: 5,
+                travelDuration: 20,
+                address: "Bernard's Cool Car, Rochester, MI 48309",
+                travelDistance: 69,
+                travelDirection: { degrees: 50 }
+            },
+            {
+                latitude: 4,
+                longitude: 5,
+                travelDuration: 20,
+                address: "Gavin's Rust Hideout, Rochester, MI 48309",
+                travelDistance: 42,
+                travelDirection: { degrees: 50 }
+            }
+        ],
         direction: { degrees: 50 }
     });
 
