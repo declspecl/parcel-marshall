@@ -1,11 +1,15 @@
 import { Driver } from "@/model/driver";
 import { createContext, useReducer } from "react";
 
-export const DriverContext = createContext<Driver | null>(null);
+interface DriverState {
+    driver: Driver;
+}
+
+export const DriverContext = createContext<DriverState | null>(null);
 
 interface DriverStateAction {}
 
-type DriverReducerType = (prevState: Driver, action: DriverStateAction) => Driver;
+type DriverReducerType = (prevState: DriverState, action: DriverStateAction) => DriverState;
 
 const driverStateReducer: DriverReducerType = (state, action) => {
     return state;
@@ -16,6 +20,12 @@ interface DriverCtxProviderProps {
 }
 
 export default function DriverCtxProvider({ children }: DriverCtxProviderProps) {
-    const [driverState, driverDispatch] = useReducer<DriverReducerType>(driverStateReducer, new Driver(null, [], null));
-    return <DriverContext.Provider value={driverState}>{children}</DriverContext.Provider>;
+    const [driverState, driverDispatch] = useReducer<DriverReducerType>(driverStateReducer, {
+        driver: new Driver(null, [], null)
+    });
+
+    const ctxValue: DriverState = {
+        driver: driverState.driver
+    };
+    return <DriverContext.Provider value={ctxValue}>{children}</DriverContext.Provider>;
 }
