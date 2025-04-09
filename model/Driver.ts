@@ -9,31 +9,31 @@ export interface Driver {
     readonly getCurrentLocation: () => Location;
 }
 
-function updateLocation(self: Driver, currentLocation: Location): Driver {
+export function updateLocation(self: Driver, currentLocation: Location): Driver {
     return { ...self, currentLocation };
 }
 
-function addDestination(self: Driver, destination: Destination): Driver {
+export function addDestination(self: Driver, destination: Destination): Driver {
     const newDestinations = [...self.destinations, destination];
     return { ...self, destinations: newDestinations };
 }
 
-function removeDestination(self: Driver, destination: Destination): Driver {
+export function removeDestination(self: Driver, destination: Destination): Driver {
     const newDestinations = [...self.destinations];
     const index = newDestinations.indexOf(destination);
     newDestinations.splice(index, 1);
     return { ...self, destinations: newDestinations };
 }
 
-function sortDestinationsByProximity(self: Driver): Driver {
+export function sortDestinationsByProximity(self: Driver): Driver {
     // TODO implment
     return self;
 }
 
-function sortDestinationsByFastestRoute(self: Driver): Driver {
+export function sortDestinationsByFastestRoute(self: Driver): Driver {
     return self;
 }
 
-function updateDirection(self: Driver, direction: Direction): Driver {
+export function updateDirection(self: Driver, direction: Direction): Driver {
     return { ...self, direction };
 }
