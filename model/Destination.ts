@@ -1,47 +1,20 @@
 import { Location } from "./location";
 import { Direction } from "./direction";
 
-export class Destination extends Location {
-    private travelDuration: number;
-    private travelDistance: number;
-    private travelDirection: Direction;
+export interface Destination extends Location {
+    readonly travelDuration: number;
+    readonly travelDistance: number;
+    readonly travelDirection: Direction;
+}
 
-    constructor(
-        latitude: number,
-        longitude: number,
-        address: string | null,
-        travelDuration: number,
-        travelDistance: number,
-        travelDirection: Direction
-    ) {
-        super(latitude, longitude, address);
+export function setTravelDuration(self: Destination, travelDuration: number): Destination {
+    return { ...self, travelDuration };
+}
 
-        this.travelDuration = travelDuration;
-        this.travelDistance = travelDistance;
-        this.travelDirection = travelDirection;
-    }
+export function setTravelDistance(self: Destination, travelDistance: number): Destination {
+    return { ...self, travelDistance };
+}
 
-    public getTravelDuration(): number {
-        return this.travelDuration;
-    }
-
-    public getTravelDistance(): number {
-        return this.travelDistance;
-    }
-
-    public getTravelDirection(): Direction {
-        return this.travelDirection;
-    }
-
-    public setTravelDuration(travelDuration: number): void {
-        this.travelDuration = travelDuration;
-    }
-
-    public setTravelDistance(travelDistance: number): void {
-        this.travelDistance = travelDistance;
-    }
-
-    public setTravelDirection(travelDirection: Direction): void {
-        this.travelDirection = travelDirection;
-    }
+export function setTravelDirection(self: Destination, travelDirection: Direction): Destination {
+    return { ...self, travelDirection };
 }
