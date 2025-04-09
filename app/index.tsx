@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { Direction } from "@/model/Direction";
+import { useDriver } from "@/store/DriverContext";
 import { Text, View, StyleSheet, Pressable, FlatList, Modal, TextInput } from "react-native";
 
 export default function Home() {
