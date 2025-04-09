@@ -1,19 +1,11 @@
 import { CompassDirection } from "./CompassDirection";
 
-export class Direction {
-    private degrees: number;
+export interface Direction {
+    readonly degrees: number;
+}
 
-    constructor(degrees: number) {
-        this.degrees = degrees;
-    }
+export function getCompassDirection(self: Direction): CompassDirection {
+    // TODO: implement
 
-    public getDegrees(): number {
-        return this.degrees;
-    }
-
-    public getCompassDirection(): CompassDirection {
-        // TODO: implement
-
-        return CompassDirection.NORTH;
-    }
+    return CompassDirection.NORTH;
 }

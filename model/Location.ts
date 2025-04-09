@@ -1,37 +1,19 @@
 import { Direction } from "./Direction";
 
-export class Location {
-    private latitude: number;
-    private longitude: number;
-    private address: string | null;
+export interface Location {
+    readonly latitude: number;
+    readonly longitude: number;
+    readonly address: string | null;
+}
 
-    constructor(latitude: number, longitude: number, address: string | null) {
-        this.latitude = latitude;
-        this.longitude = longitude;
-        this.address = address;
-    }
+export function getDistanceFrom(self: Location, other: Location): number {
+    // TODO: implement
 
-    public getLatitude(): number {
-        return this.latitude;
-    }
+    return 0;
+}
 
-    public getLongitude(): number {
-        return this.longitude;
-    }
+export function getDirectionTo(self: Location, other: Location): Direction {
+    // TODO: implement
 
-    public getAddress(): string | null {
-        return this.address;
-    }
-
-    public getDistanceFrom(other: Location): number {
-        // TODO: implement
-
-        return 0;
-    }
-
-    public getDirectionTo(other: Location): Direction {
-        // TODO: implement
-
-        return new Direction(0);
-    }
+    return { degrees: 0 };
 }
