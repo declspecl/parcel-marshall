@@ -16,7 +16,7 @@ interface DriverContextType {
     updateDirection: (direction: Direction) => void;
 }
 
-export const DriverContext = createContext<DriverContextType | null>(null);
+const DriverContext = createContext<DriverContextType | null>(null);
 
 enum DriverActionTypes {
     UPDATE_LOCATION = "UPDATE_LOCATION",
