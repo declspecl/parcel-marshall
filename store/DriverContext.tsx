@@ -80,22 +80,22 @@ const driverStateReducer: DriverReducerType = (state, action) => {
             break;
         }
         case DriverActionTypes.SORT_DEST_BY_PROXIMITY: {
-            state.sortDestinationsByProximity();
+            stateCopy.sortDestinationsByProximity();
             break;
         }
         case DriverActionTypes.SORT_DEST_BY_PROXIMITY: {
-            state.sortDestinationsByFastestRoute();
+            stateCopy.sortDestinationsByFastestRoute();
             break;
         }
         case DriverActionTypes.UPDATE_DIRECTION: {
-            state.updateDirection(action.payload);
+            stateCopy.updateDirection(action.payload);
             break;
         }
         default: {
             return state;
         }
     }
-    return state;
+    return stateCopy;
 };
 
 interface DriverCtxProviderProps {
