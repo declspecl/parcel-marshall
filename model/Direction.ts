@@ -1,4 +1,4 @@
-import { CompassDirection } from "./compass_direction";
+import { CompassDirection } from "./CompassDirection";
 
 export interface Direction {
     readonly degrees: number;

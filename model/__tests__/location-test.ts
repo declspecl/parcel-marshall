@@ -1,5 +1,5 @@
-import { Location } from "@/model/location";
-import { Direction } from "@/model/direction";
+import { Location } from "@/model/Location";
+import { Direction } from "@/model/Direction";
 
 describe("Location", () => {
     it("accurately calculates distance between two locations", () => {

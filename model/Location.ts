@@ -1,4 +1,4 @@
-import { Direction } from "./direction";
+import { Direction } from "./Direction";
 
 export interface Location {
     readonly latitude: number;
