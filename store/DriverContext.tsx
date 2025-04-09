@@ -1,6 +1,14 @@
 import { Destination } from "@/model/Destination";
 import { Direction } from "@/model/Direction";
-import { Driver } from "@/model/driver";
+import {
+    addDestination,
+    Driver,
+    removeDestination,
+    sortDestinationsByFastestRoute,
+    sortDestinationsByProximity,
+    updateDirection,
+    updateLocation
+} from "@/model/Driver";
 import { Location } from "@/model/Location";
 import { createContext, useContext, useReducer } from "react";
 
@@ -63,39 +71,31 @@ type DriverStateAction =
     | SortDestinationByFastestRouteAction
     | UpdateDirectionAction;
 
-type DriverReducerType = (prevState: DriverState, action: DriverStateAction) => DriverState;
+type DriverReducerType = (prevState: Driver, action: DriverStateAction) => Driver;
 const driverStateReducer: DriverReducerType = (state, action) => {
-    const stateCopy: Driver = structuredClone(state);
     switch (action.type) {
         case DriverActionTypes.UPDATE_LOCATION: {
-            stateCopy.updateLocation(action.payload);
-            break;
+            return updateLocation(state, action.payload);
         }
         case DriverActionTypes.ADD_DESTINATION: {
-            stateCopy.addDestination(action.payload);
-            break;
+            return addDestination(state, action.payload);
         }
         case DriverActionTypes.REMOVE_DESTINATION: {
-            stateCopy.removeDestination(action.payload);
-            break;
+            return removeDestination(state, action.payload);
         }
         case DriverActionTypes.SORT_DEST_BY_PROXIMITY: {
-            stateCopy.sortDestinationsByProximity();
-            break;
+            return sortDestinationsByProximity(state);
         }
         case DriverActionTypes.SORT_DEST_BY_PROXIMITY: {
-            stateCopy.sortDestinationsByFastestRoute();
-            break;
+            return sortDestinationsByFastestRoute(state);
         }
         case DriverActionTypes.UPDATE_DIRECTION: {
-            stateCopy.updateDirection(action.payload);
-            break;
+            return updateDirection(state, action.payload);
         }
         default: {
             return state;
         }
     }
-    return stateCopy;
 };
 
 interface DriverCtxProviderProps {
@@ -103,10 +103,11 @@ interface DriverCtxProviderProps {
 }
 
 function DriverCtxProvider({ children }: DriverCtxProviderProps) {
-    const [driverState, driverDispatch] = useReducer<DriverReducerType>(
-        driverStateReducer,
-        undefined as unknown as DriverState
-    );
+    const [driverState, driverDispatch] = useReducer<DriverReducerType>(driverStateReducer, {
+        currentLocation: new Location(5, 5, null),
+        destinations: [],
+        direction: new Direction(50)
+    });
 
     function updateLocation(location: Location) {
         driverDispatch({ type: DriverActionTypes.UPDATE_LOCATION, payload: location });
@@ -141,7 +142,7 @@ function DriverCtxProvider({ children }: DriverCtxProviderProps) {
 
 function useDriver() {
     const context = useContext(DriverContext);
-    if (context === undefined) {
+    if (context === null) {
         throw new Error(`useDriver must be used within a ${DriverCtxProvider.name}`);
     }
     return context;

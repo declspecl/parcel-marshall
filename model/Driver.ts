@@ -6,7 +6,6 @@ export interface Driver {
     readonly currentLocation: Location;
     readonly destinations: Destination[];
     readonly direction: Direction;
-    readonly getCurrentLocation: () => Location;
 }
 
 export function updateLocation(self: Driver, currentLocation: Location): Driver {
