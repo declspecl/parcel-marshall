@@ -2,51 +2,38 @@ import { Location } from "./Location";
 import { Direction } from "./Direction";
 import { Destination } from "./Destination";
 
-export class Driver {
-    private currentLocation: Location;
-    private destinations: Destination[];
-    private direction: Direction;
+export interface Driver {
+    readonly currentLocation: Location;
+    readonly destinations: Destination[];
+    readonly direction: Direction;
+    readonly getCurrentLocation: () => Location;
+}
 
-    constructor(currentLocation: Location, destinations: Destination[], direction: Direction) {
-        this.currentLocation = currentLocation;
-        this.destinations = destinations;
-        this.direction = direction;
-    }
+function updateLocation(self: Driver, currentLocation: Location): Driver {
+    return { ...self, currentLocation };
+}
 
-    public getCurrentLocation(): Location {
-        return this.currentLocation;
-    }
+function addDestination(self: Driver, destination: Destination): Driver {
+    const newDestinations = [...self.destinations, destination];
+    return { ...self, destinations: newDestinations };
+}
 
-    public getDestinations(): Destination[] {
-        return this.destinations;
-    }
+function removeDestination(self: Driver, destination: Destination): Driver {
+    const newDestinations = [...self.destinations];
+    const index = newDestinations.indexOf(destination);
+    newDestinations.splice(index, 1);
+    return { ...self, destinations: newDestinations };
+}
 
-    public getDirection(): Direction {
-        return this.direction;
-    }
+function sortDestinationsByProximity(self: Driver): Driver {
+    // TODO implment
+    return self;
+}
 
-    public updateLocation(location: Location): void {
-        this.currentLocation = location;
-    }
+function sortDestinationsByFastestRoute(self: Driver): Driver {
+    return self;
+}
 
-    public addDestination(destination: Destination): void {
-        this.destinations.push(destination);
-    }
-
-    // TODO: reconsider if this is needed
-    public removeDestination(destination: Destination): void {
-        // TODO: implement
-    }
-
-    public sortDestinationsByProximity(): void {
-        // TODO: implement
-    }
-
-    public sortDestinationsByFastestRoute(): void {
-        // TODO: implement
-    }
-
-    public updateDirection(direction: Direction): void {
-        this.direction = direction;
-    }
+function updateDirection(self: Driver, direction: Direction): Driver {
+    return { ...self, direction };
 }
