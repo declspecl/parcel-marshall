@@ -13,6 +13,7 @@
  */
 
 import { Destination } from "@/model/Destination";
+import { getUniqueDestinationKey } from "@/model/Location";
 import { useDriver } from "@/store/DriverContext";
 import React, { useState } from "react";
 import { Text, View, StyleSheet, FlatList, Pressable, Modal, TextInput } from "react-native";
@@ -29,16 +30,24 @@ export default function Route() {
     //but you know me 😎
 
     const handleAdd = () => {
-        console.log("Add destination:", address);
-        setModalVisible(false);
+        if (!address.trim()) return;
+        const newDestination: Destination = {
+            latitude: 5,
+            longitude: 56,
+            address,
+            travelDuration: 10,
+            travelDistance: 500,
+            travelDirection: { degrees: 0 }
+        };
+        addDestination(newDestination);
         setAddress("");
-        // you’d actually update state here
+        setModalVisible(false);
     };
 
     const handleRemove = (destination: Destination) => {
         removeDestination(destination);
-        // setDestinations(destinations.filter((destination) => destination.id !== id));
     };
+
     //will update title and text to be more relevant to the app
     //we want a professional look and feel, not a meme fest
     //but for now I like the memes 😎
@@ -53,7 +62,7 @@ export default function Route() {
 
             <FlatList
                 data={destinations}
-                keyExtractor={(item) => item.address || "a"}
+                keyExtractor={(item) => getUniqueDestinationKey(item)}
                 renderItem={({ item }) => (
                     <View style={styles.card}>
                         <Text>{item.address}</Text>

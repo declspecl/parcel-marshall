@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useDriver } from "@/store/DriverContext";
-import { Text, View, StyleSheet, Pressable, FlatList, Modal, TextInput } from "react-native";
 import { Destination } from "@/model/Destination";
+import { Text, View, StyleSheet, Pressable, FlatList, Modal, TextInput } from "react-native";
+import { getUniqueDestinationKey } from "@/model/Location";
 
 export default function Home() {
     const { driver, addDestination, removeDestination } = useDriver();
@@ -43,9 +44,14 @@ export default function Home() {
 
             <FlatList
                 data={destinations}
-                keyExtractor={(item) => `${item.latitude}-${item.longitude}-${item.travelDirection}`}
+                keyExtractor={(item) => getUniqueDestinationKey(item)}
                 renderItem={({ item }) => (
-                    <View style={[styles.card, item.address === current?.address && styles.currentCard]}>
+                    <View
+                        style={[
+                            styles.card,
+                            getUniqueDestinationKey(item) === getUniqueDestinationKey(current) && styles.currentCard
+                        ]}
+                    >
                         <Text>{item.address}</Text>
                         <Text>
                             {item.travelDistance} 🧭 {item.travelDirection.degrees}
