@@ -12,6 +12,7 @@
  *  we just vibe 😎
  */
 
+import { DestinationCard } from "@/components/DestinationCard";
 import { Destination } from "@/model/Destination";
 import { getUniqueDestinationKey } from "@/model/Location";
 import { useDriver } from "@/store/DriverContext";
@@ -44,10 +45,6 @@ export default function Route() {
         setModalVisible(false);
     };
 
-    const handleRemove = (destination: Destination) => {
-        removeDestination(destination);
-    };
-
     //will update title and text to be more relevant to the app
     //we want a professional look and feel, not a meme fest
     //but for now I like the memes 😎
@@ -63,17 +60,7 @@ export default function Route() {
             <FlatList
                 data={destinations}
                 keyExtractor={(item) => getUniqueDestinationKey(item)}
-                renderItem={({ item }) => (
-                    <View style={styles.card}>
-                        <Text>{item.address}</Text>
-                        <Text>
-                            {item.travelDistance} 🧭 {item.travelDirection.degrees}
-                        </Text>
-                        <Pressable style={styles.removeBtn} onPress={() => handleRemove(item)}>
-                            <Text>❌</Text>
-                        </Pressable>
-                    </View>
-                )}
+                renderItem={({ item }) => <DestinationCard destination={item} />}
             />
 
             <Pressable style={styles.addBtn} onPress={() => setModalVisible(true)}>
