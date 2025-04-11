@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { useDriver } from "@/store/DriverContext";
 import { Destination } from "@/model/Destination";
-import { Text, View, StyleSheet, Pressable, FlatList, Modal, TextInput } from "react-native";
 import { getUniqueDestinationKey } from "@/model/Location";
+import { DestinationCard } from "@/components/DestinationCard";
+import { Text, View, StyleSheet, Pressable, FlatList, Modal, TextInput } from "react-native";
 
 export default function Home() {
     const { driver, addDestination, removeDestination } = useDriver();
@@ -31,10 +32,6 @@ export default function Home() {
         setModalVisible(false);
     };
 
-    const handleRemove = (destination: Destination) => {
-        removeDestination(destination);
-    };
-
     const current = destinations[0];
 
     return (
@@ -46,20 +43,10 @@ export default function Home() {
                 data={destinations}
                 keyExtractor={(item) => getUniqueDestinationKey(item)}
                 renderItem={({ item }) => (
-                    <View
-                        style={[
-                            styles.card,
-                            getUniqueDestinationKey(item) === getUniqueDestinationKey(current) && styles.currentCard
-                        ]}
-                    >
-                        <Text>{item.address}</Text>
-                        <Text>
-                            {item.travelDistance} 🧭 {item.travelDirection.degrees}
-                        </Text>
-                        <Pressable style={styles.removeBtn} onPress={() => handleRemove(item)}>
-                            <Text>❌</Text>
-                        </Pressable>
-                    </View>
+                    <DestinationCard
+                        destination={item}
+                        isCurrent={getUniqueDestinationKey(item) === getUniqueDestinationKey(current)}
+                    />
                 )}
             />
 
@@ -94,17 +81,6 @@ export default function Home() {
 const styles = StyleSheet.create({
     container: { padding: 20, flex: 1 },
     title: { fontSize: 24, marginBottom: 20 },
-    card: {
-        backgroundColor: "#f2f2f2",
-        padding: 12,
-        borderRadius: 8,
-        marginBottom: 10
-    },
-    currentCard: {
-        borderColor: "#3366ff",
-        borderWidth: 2,
-        backgroundColor: "#e6f0ff"
-    },
     completeBtn: {
         marginTop: 12,
         backgroundColor: "#28a745",
@@ -177,11 +153,5 @@ const styles = StyleSheet.create({
     },
     closeText: {
         fontSize: 18
-    },
-    removeBtn: {
-        position: "absolute",
-        top: 10,
-        right: 10,
-        padding: 4
     }
 });
