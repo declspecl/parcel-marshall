@@ -25,7 +25,7 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
 
     return (
         <Animated.View style={[styles.animatedContainer, { opacity: fadeAnim }]}>
-            <Image source={require("../assets/images/image_2.png")} style={styles.logo} resizeMode="contain" />
+            <Image source={require("../assets/images/logo.png")} style={styles.logo} resizeMode="contain" />
             <ActivityIndicator size="large" color="#007AFF" style={styles.spinner} />
         </Animated.View>
     );

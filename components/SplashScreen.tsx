@@ -1,7 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { View, StyleSheet, Animated, ActivityIndicator } from "react-native";
-import { useNavigation } from "expo-router";
-import { Image } from "react-native";
+import { View, StyleSheet, Animated, ActivityIndicator, Image } from "react-native";
 
 type SplashScreenProps = {
     onFinish: () => void;
@@ -12,7 +10,6 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
 
     useEffect(() => {
         const timeout = setTimeout(() => {
-            // Fade out animation for loading screen
             Animated.timing(fadeAnim, {
                 toValue: 0,
                 duration: 1000,
@@ -27,24 +24,32 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
 
     return (
         <Animated.View style={[StyleSheet.absoluteFillObject, styles.container, { opacity: fadeAnim }]}>
-            <Image source={require("../assets/images/image_2.png")} style={styles.logo} resizeMode="contain" />
-            <ActivityIndicator size="large" color="007AFF" style={styles.spinner} />
+            <View style={styles.content}>
+                <Image source={require("../assets/images/logo.png")} style={styles.logo} resizeMode="contain" />
+                <ActivityIndicator size="large" color="#007AFF" style={styles.spinner} />
+            </View>
         </Animated.View>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
+        flex: 1,
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "#ffffff" //change if we want diff color
     },
+    content: {
+        alignItems: "center",
+        justifyContent: "center"
+    },
     logo: {
-        width: 150,
-        height: 150
+        width: 300,
+        height: 300,
+        marginBottom: 30
     },
     spinner: {
-        marginTop: 30
+        marginTop: 0
     }
 });
 

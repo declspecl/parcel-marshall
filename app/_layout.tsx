@@ -1,8 +1,16 @@
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { DriverCtxProvider } from "@/store/DriverContext";
+import { useState } from "react";
+import SplashScreen from "@/components/SplashScreen";
 
 export default function RootLayout() {
+    const [isSplashVisible, setSplashVisible] = useState(true);
+
+    if (isSplashVisible) {
+        return <SplashScreen onFinish={() => setSplashVisible(false)} />;
+    }
+
     return (
         <DriverCtxProvider>
             <Tabs
