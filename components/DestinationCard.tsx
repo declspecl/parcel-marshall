@@ -28,11 +28,25 @@ export function DestinationCard({ destination, isCurrent = false }: DestinationC
 
 const styles = StyleSheet.create({
     card: {
-        backgroundColor: "#f2f2f2",
+        backgroundColor: "#ffffff", // cleaner white background
         padding: 12,
         borderRadius: 8,
-        marginBottom: 10
+        marginBottom: 10,
+
+        // Soft outline
+        borderWidth: 1,
+        borderColor: "#ddd", // light gray border
+
+        // Subtle shadow (good fallback for web)
+        shadowColor: "#000",
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+        shadowOffset: { width: 0, height: 2 },
+
+        // Web-friendly elevation
+        elevation: 2
     },
+
     currentCard: {
         borderColor: "#3366ff",
         borderWidth: 2,

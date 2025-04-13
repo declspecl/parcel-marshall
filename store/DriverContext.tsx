@@ -118,36 +118,65 @@ function DriverCtxProvider({ children }: DriverCtxProviderProps) {
         currentLocation: { latitude: 5, longitude: 5, address: null },
         destinations: storeService.getDestinations() ?? [
             {
-                latitude: 4,
-                longitude: 5,
-                travelDuration: 20,
+                latitude: 4.7,
+                longitude: 5.7,
+                //travelDuration: 20,
+                travelDuration: 60,
                 address: "318 Meadow Brook Rd, Rochester, MI 48309",
-                travelDistance: parseInt((Math.random() * 100).toFixed(0)),
-                travelDirection: { degrees: 50 }
+                //travelDistance: parseInt((Math.random() * 100).toFixed(0)),
+                travelDistance: 60,
+                //travelDirection: { degrees: 50 }
+                travelDirection: { degrees: 180 }
             },
             {
-                latitude: 4,
-                longitude: 5,
+                latitude: 5.1, // testing purposes
+                longitude: 5.1,
                 travelDuration: 20,
                 address: "Anton’s Discrete Math Asylum, UA 01001",
-                travelDistance: parseInt((Math.random() * 100).toFixed(0)),
-                travelDirection: { degrees: 50 }
+                //travelDistance: parseInt((Math.random() * 100).toFixed(0)),
+                travelDistance: 10,
+                travelDirection: { degrees: 90 }
             },
             {
-                latitude: 4,
-                longitude: 5,
-                travelDuration: 20,
+                latitude: 3.2,
+                longitude: 6.2,
+                travelDuration: 40,
                 address: "Bernard's Cool Car, Rochester, MI 48309",
-                travelDistance: 69,
-                travelDirection: { degrees: 50 }
+                travelDistance: 30,
+                travelDirection: { degrees: 270 }
             },
             {
-                latitude: 4,
-                longitude: 5,
-                travelDuration: 20,
+                latitude: 4.1,
+                longitude: 4.1,
+                travelDuration: 50,
                 address: "Gavin's Rust Hideout, Rochester, MI 48309",
-                travelDistance: parseInt((Math.random() * 100).toFixed(0)),
-                travelDirection: { degrees: 50 }
+                //travelDistance: parseInt((Math.random() * 100).toFixed(0)),
+                travelDistance: 70,
+                travelDirection: { degrees: 45 }
+            },
+            {
+                address: "A",
+                latitude: 5,
+                longitude: 5,
+                travelDistance: 50,
+                travelDuration: 10,
+                travelDirection: { degrees: 0 }
+            },
+            {
+                address: "B",
+                latitude: 6,
+                longitude: 5,
+                travelDistance: 30,
+                travelDuration: 10,
+                travelDirection: { degrees: 0 }
+            },
+            {
+                address: "C",
+                latitude: 7,
+                longitude: 5,
+                travelDistance: 10,
+                travelDuration: 10,
+                travelDirection: { degrees: 0 }
             }
         ],
         direction: { degrees: 50 }
@@ -156,10 +185,11 @@ function DriverCtxProvider({ children }: DriverCtxProviderProps) {
     useEffect(() => {
         switch (routeName) {
             case RouteName.Index:
-                sortDestinationByProximity();
+                //sortDestinationByProximity(); commenting out for now as i am handling this
+                // in update button
                 break;
             case RouteName.Route:
-                sortDestinationByFastestRoute();
+                //sortDestinationByFastestRoute();
                 break;
             case RouteName.Settings:
                 throw new Error("How are you updating destinations state in settings?");

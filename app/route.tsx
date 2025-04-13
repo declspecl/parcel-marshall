@@ -12,29 +12,36 @@
  *  we just vibe 😎
  */
 
+import { useEffect, useState } from "react";
+import { Text, View, StyleSheet, FlatList, Pressable, Modal, TextInput } from "react-native";
 import { Destination } from "@/model/Destination";
+import { getFastestRoute } from "@/model/Driver";
 import { getUniqueDestinationKey } from "@/model/Location";
 import { useDriver } from "@/store/DriverContext";
-import React, { useState } from "react";
 import { DestinationCard } from "@/components/DestinationCard";
-import { Text, View, StyleSheet, FlatList, Pressable, Modal, TextInput } from "react-native";
 import AddAddressButton from "@/components/AddAddressButton";
 import CompletionButton from "@/components/CompletionButton";
 import UpdateButton from "@/components/UpdateButton";
 
 export default function Route() {
     const { driver, addDestination, removeDestination } = useDriver();
-    const destinations = driver.destinations;
+    //load driver data from global state once then set it to local state to avoid re-renders between pages
+    const [virtualRoute, setVirtualRoute] = useState<Destination[]>(driver.destinations);
+
+    // Initial route calculation when Route page loads
+    // commenting out for now but it is here if needed
+    //useEffect(() => {
+    //    setVirtualRoute(getFastestRoute(driver.currentLocation, driver.destinations));
+    //}, []);
 
     const [modalVisible, setModalVisible] = useState(false);
     const [address, setAddress] = useState("");
-
-    //mock data to get a grip on the UI
-    // this would be replaced with actual data from your API or state management
-    //but you know me 😎
+    const [isUpdating, setIsUpdating] = useState(false);
+    const [showToast, setShowToast] = useState(false);
 
     const handleAdd = () => {
         if (!address.trim()) return;
+
         const newDestination: Destination = {
             latitude: 5,
             longitude: 56,
@@ -43,36 +50,58 @@ export default function Route() {
             travelDistance: 500,
             travelDirection: { degrees: 0 }
         };
-        addDestination(newDestination);
+
+        addDestination(newDestination); // Updates global state
+        setVirtualRoute(getFastestRoute(driver.currentLocation, [...driver.destinations, newDestination])); // Update local route view
+
         setAddress("");
         setModalVisible(false);
     };
 
-    //setting the scaffolding for future Update button here
-    // There is current no google maps api logic so this will kinda work with that in the future
-    const [isUpdating, setIsUpdating] = useState(false);
-    const handleUpdate = () => {
-        setIsUpdating(true);
-
-        console.log("Refreshing route...");
-        // Placeholder logic for updating the route
-        // in a real app, this would involve API calls to update the route
-        setTimeout(() => {
-            setIsUpdating(false);
-        }, 1500);
-    };
-
-    const handleComplete = () => {
-        if (destinations.length === 0) return;
-        removeDestination(destinations[0]);
-    };
-
     const handleRemove = (destination: Destination) => {
         removeDestination(destination);
+        setVirtualRoute(
+            getFastestRoute(
+                driver.currentLocation,
+                driver.destinations.filter((d) => d !== destination)
+            )
+        );
     };
 
-    const current = destinations[0];
+    const handleUpdate = () => {
+        setIsUpdating(true);
+        setShowToast(true);
 
+        console.log("🔄 Refreshing route (by fastest time)...");
+        console.log("🔄 Refreshing route from:", driver.currentLocation);
+        console.log(
+            "➡️ Before sort:",
+            driver.destinations.map((d) => d.address)
+        );
+        const sorted = getFastestRoute(driver.currentLocation, driver.destinations);
+        setVirtualRoute(sorted);
+        console.log(
+            "✅ After sort:",
+            sorted.map((d) => d.address)
+        );
+        setTimeout(() => {
+            setIsUpdating(false);
+            setShowToast(false);
+        }, 2000);
+    };
+
+    const current = virtualRoute[0];
+
+    const handleComplete = () => {
+        if (virtualRoute.length === 0) return;
+
+        const toRemove = virtualRoute[0];
+
+        removeDestination(toRemove); // Updates global state
+        setVirtualRoute((prev) => prev.filter((d) => d !== toRemove)); // Updates local view
+    };
+
+    const dataToDisplay = virtualRoute.length > 0 ? virtualRoute : driver.destinations;
     //will update title and text to be more relevant to the app
     //we want a professional look and feel, not a meme fest
     //but for now I like the memes 😎
@@ -83,25 +112,30 @@ export default function Route() {
             <Text style={styles.location}>You are here: ... XYZ address</Text>
             <Text style={styles.direction}>Traveling 🧭 N</Text>
             <UpdateButton onPress={handleUpdate} loading={isUpdating} />
+            {showToast && (
+                <View style={styles.toast}>
+                    <Text style={styles.toastText}>⏱ ParcelMarshall is optimizing for speed...</Text>
+                </View>
+            )}
 
             <FlatList
-                data={destinations}
+                data={dataToDisplay}
                 keyExtractor={(item) => getUniqueDestinationKey(item)}
                 renderItem={({ item }) => (
                     <DestinationCard
                         destination={item}
-                        isCurrent={getUniqueDestinationKey(item) === getUniqueDestinationKey(current)}
+                        isCurrent={getUniqueDestinationKey(item) === getUniqueDestinationKey(dataToDisplay[0])}
                     />
                 )}
             />
 
             <AddAddressButton onPress={() => setModalVisible(true)} />
 
-            {destinations.length > 0 ? (
-                <CompletionButton onPress={handleComplete} />
-            ) : (
-                <CompletionButton onPress={() => {}} label="📦 Mission Complete, Marshall!" disabled />
-            )}
+            <CompletionButton
+                onPress={handleComplete}
+                label={virtualRoute.length > 0 ? "Mark as Complete" : "📦 Mission Complete, Marshall!"}
+                disabled={virtualRoute.length === 0}
+            />
 
             <Modal visible={modalVisible} transparent animationType="fade">
                 <View style={styles.modal}>
@@ -131,12 +165,24 @@ const styles = StyleSheet.create({
         marginBottom: 20
     },
     card: {
-        backgroundColor: "#f2f2f2",
+        backgroundColor: "#ffffff", // white card for contrast
         padding: 12,
         borderRadius: 8,
-        marginBottom: 10,
-        position: "relative"
+        marginBottom: 12,
+        position: "relative",
+
+        // Subtle outline
+        borderWidth: 1,
+        borderColor: "#ddd",
+
+        // Shadow for web fallback
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+        elevation: 2 // web fallback
     },
+
     removeBtn: {
         position: "absolute",
         right: 10,
@@ -187,5 +233,23 @@ const styles = StyleSheet.create({
 
     closeText: {
         fontSize: 18
+    },
+    //parcellmarshall toast for rerouting
+    toast: {
+        position: "absolute",
+        bottom: 40,
+        alignSelf: "center",
+        backgroundColor: "#343a40",
+        paddingHorizontal: 24,
+        paddingVertical: 14,
+        borderRadius: 12,
+        zIndex: 999,
+        elevation: 10
+    },
+    toastText: {
+        color: "white",
+        fontWeight: "bold",
+        fontSize: 20,
+        textAlign: "center"
     }
 });
