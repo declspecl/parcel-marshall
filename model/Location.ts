@@ -10,10 +10,15 @@ export function getUniqueDestinationKey(self: Location): string {
     return `${self.latitude}-${self.longitude}-${self.address || "n/a"}`;
 }
 
-export function getDistanceFrom(self: Location, other: Location): number {
-    // TODO: implement
-
-    return 0;
+// This function calculates the distance between two locations using the Pythagorean theorem.
+//using for testing purposes - STIN
+//hopefully this will create separate functionality of the update button on each page
+//with this working for routes
+//will switch this with real destination data later from the API
+export function getDistanceFrom(a: Location, b: Location): number {
+    const dx = a.latitude - b.latitude;
+    const dy = a.longitude - b.longitude;
+    return Math.sqrt(dx * dx + dy * dy);
 }
 
 export function getDirectionTo(self: Location, other: Location): Direction {
