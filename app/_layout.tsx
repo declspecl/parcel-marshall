@@ -3,6 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { DriverCtxProvider } from "@/store/DriverContext";
 import { useState } from "react";
 import SplashScreen from "@/components/SplashScreen";
+import { RouteLabel, RouteName } from "@/lib/Routes";
 
 export default function RootLayout() {
     const [isSplashVisible, setSplashVisible] = useState(true);
@@ -20,25 +21,25 @@ export default function RootLayout() {
                 }}
             >
                 <Tabs.Screen
-                    name="index"
+                    name={RouteName.Index}
                     options={{
-                        tabBarLabel: "Home",
+                        tabBarLabel: RouteLabel.Home,
                         tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size} color={color} />,
                         title: "ParcelMarshall: Next stop: World domination (or just Gavin’s Rust Hideout) 🦀🧠"
                     }}
                 />
                 <Tabs.Screen
-                    name="route"
+                    name={RouteName.Route}
                     options={{
-                        tabBarLabel: "Route",
+                        tabBarLabel: RouteLabel.Route,
                         tabBarIcon: ({ color, size }) => <Ionicons name="map" size={size} color={color} />,
                         title: "ParcelMarshall: Drift Mode Engaged 🏎️💨"
                     }}
                 />
                 <Tabs.Screen
-                    name="settings"
+                    name={RouteName.Settings}
                     options={{
-                        tabBarLabel: "Settings",
+                        tabBarLabel: RouteLabel.Settings,
                         tabBarIcon: ({ color, size }) => <Ionicons name="settings" size={size} color={color} />,
                         title: "Settings"
                     }}
