@@ -10,8 +10,9 @@ import {
     updateLocation
 } from "@/model/Driver";
 import { getDistanceFrom, Location } from "@/model/Location";
-import { createContext, useContext, useReducer } from "react";
+import { createContext, useContext, useEffect, useReducer } from "react";
 import { LayoutAnimation } from "react-native";
+import { PersistantStoreService } from "./PersistantStoreService";
 
 type DriverState = Driver;
 
@@ -104,9 +105,10 @@ interface DriverCtxProviderProps {
 }
 
 function DriverCtxProvider({ children }: DriverCtxProviderProps) {
+    const storeService = new PersistantStoreService();
     const [driverState, driverDispatch] = useReducer<DriverReducerType>(driverStateReducer, {
         currentLocation: { latitude: 5, longitude: 5, address: null },
-        destinations: [
+        destinations: storeService.getDestinations() ?? [
             {
                 latitude: 4,
                 longitude: 5,
@@ -142,6 +144,12 @@ function DriverCtxProvider({ children }: DriverCtxProviderProps) {
         ],
         direction: { degrees: 50 }
     });
+
+    useEffect(() => {
+        storeService.setDestinationsAsync(driverState.destinations).catch((err) => {
+            console.error("Error saving destinations: ", err);
+        });
+    }, [driverState]);
 
     function updateLocation(location: Location) {
         driverDispatch({ type: DriverActionTypes.UPDATE_LOCATION, payload: location });
