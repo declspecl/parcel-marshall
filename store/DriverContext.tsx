@@ -192,7 +192,7 @@ function DriverCtxProvider({ children }: DriverCtxProviderProps) {
                 //sortDestinationByFastestRoute();
                 break;
             case RouteName.Settings:
-                throw new Error("How are you updating destinations state in settings?");
+                break;
             default:
                 console.log(`DriverCtxProvider: Unknown route name: ${routeName}`);
         }
