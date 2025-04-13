@@ -24,13 +24,16 @@ export function removeDestination(self: Driver, destination: Destination): Drive
     return { ...self, destinations: newDestinations };
 }
 
+//adding code for testing purposes -STIN
 export function sortDestinationsByProximity(self: Driver): Driver {
-    const newDestinations = [...self.destinations];
-    newDestinations.sort((a, b) => {
-        return a.travelDistance - b.travelDistance;
-    });
-
+    const newDestinations = [...self.destinations].sort(
+        (a, b) => a.travelDistance - b.travelDistance
+        // A is closer than B than result is negative -> A comes first
+        // A is further than B than result is positive -> B comes first
+        // A and B are equal than result is 0 -> no change in order
+    );
     return { ...self, destinations: newDestinations };
+    //will return a new driver object with the sorted destinations
 }
 
 export function sortDestinationsByFastestRoute(self: Driver): Driver {

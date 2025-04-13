@@ -12,12 +12,15 @@
  *  we just vibe 😎
  */
 
-import { DestinationCard } from "@/components/DestinationCard";
 import { Destination } from "@/model/Destination";
 import { getUniqueDestinationKey } from "@/model/Location";
 import { useDriver } from "@/store/DriverContext";
 import React, { useState } from "react";
+import { DestinationCard } from "@/components/DestinationCard";
 import { Text, View, StyleSheet, FlatList, Pressable, Modal, TextInput } from "react-native";
+import AddAddressButton from "@/components/AddAddressButton";
+import CompletionButton from "@/components/CompletionButton";
+import UpdateButton from "@/components/UpdateButton";
 
 export default function Route() {
     const { driver, addDestination, removeDestination } = useDriver();
@@ -45,27 +48,60 @@ export default function Route() {
         setModalVisible(false);
     };
 
+    //setting the scaffolding for future Update button here
+    // There is current no google maps api logic so this will kinda work with that in the future
+    const [isUpdating, setIsUpdating] = useState(false);
+    const handleUpdate = () => {
+        setIsUpdating(true);
+
+        console.log("Refreshing route...");
+        // Placeholder logic for updating the route
+        // in a real app, this would involve API calls to update the route
+        setTimeout(() => {
+            setIsUpdating(false);
+        }, 1500);
+    };
+
+    const handleComplete = () => {
+        if (destinations.length === 0) return;
+        removeDestination(destinations[0]);
+    };
+
+    const handleRemove = (destination: Destination) => {
+        removeDestination(destination);
+    };
+
+    const current = destinations[0];
+
     //will update title and text to be more relevant to the app
     //we want a professional look and feel, not a meme fest
     //but for now I like the memes 😎
     return (
         <View style={styles.container}>
             <Text style={{ fontSize: 24, marginBottom: 20 }}>Route Page (a.k.a. The Drift Zone 🏎️💨)</Text>
+            <Text style={styles.subtext}>"The only 'route' we follow is pure chaos 🧭🔥"</Text>
             <Text style={styles.location}>You are here: ... XYZ address</Text>
             <Text style={styles.direction}>Traveling 🧭 N</Text>
-            <Pressable style={styles.updateBtn}>
-                <Text>Update now</Text>
-            </Pressable>
+            <UpdateButton onPress={handleUpdate} loading={isUpdating} />
 
             <FlatList
                 data={destinations}
                 keyExtractor={(item) => getUniqueDestinationKey(item)}
-                renderItem={({ item }) => <DestinationCard destination={item} />}
+                renderItem={({ item }) => (
+                    <DestinationCard
+                        destination={item}
+                        isCurrent={getUniqueDestinationKey(item) === getUniqueDestinationKey(current)}
+                    />
+                )}
             />
 
-            <Pressable style={styles.addBtn} onPress={() => setModalVisible(true)}>
-                <Text style={styles.addText}>➕</Text>
-            </Pressable>
+            <AddAddressButton onPress={() => setModalVisible(true)} />
+
+            {destinations.length > 0 ? (
+                <CompletionButton onPress={handleComplete} />
+            ) : (
+                <CompletionButton onPress={() => {}} label="📦 Mission Complete, Marshall!" disabled />
+            )}
 
             <Modal visible={modalVisible} transparent animationType="fade">
                 <View style={styles.modal}>
@@ -106,17 +142,7 @@ const styles = StyleSheet.create({
         right: 10,
         top: 10
     },
-    addBtn: {
-        position: "absolute",
-        bottom: 30,
-        alignSelf: "center",
-        backgroundColor: "#3366ff",
-        borderRadius: 50,
-        padding: 12
-    },
-    addText: {
-        fontSize: 24
-    },
+
     modal: {
         backgroundColor: "white",
         margin: 40,
@@ -151,6 +177,12 @@ const styles = StyleSheet.create({
         top: 10,
         right: 10,
         padding: 4
+    },
+    subtext: {
+        fontSize: 14,
+        fontStyle: "italic",
+        color: "#666",
+        marginBottom: 20
     },
 
     closeText: {

@@ -17,9 +17,6 @@ import { LayoutAnimation } from "react-native";
 import { PersistantStoreService } from "./PersistantStoreService";
 import { useNavigationState } from "@react-navigation/native"; // You had the wrong quotes in original
 
-
-
-
 type DriverState = Driver;
 
 interface DriverContextType {
@@ -94,9 +91,11 @@ const driverStateReducer: DriverReducerType = (state, action) => {
         case DriverActionTypes.SORT_DEST_BY_PROXIMITY: {
             return sortDestinationsByProximity(state);
         }
-        case DriverActionTypes.SORT_DEST_BY_PROXIMITY: {
+        //fixed typo in action type
+        case DriverActionTypes.SORT_DEST_BY_FASTEST_ROUTE: {
             return sortDestinationsByFastestRoute(state);
         }
+
         case DriverActionTypes.UPDATE_DIRECTION: {
             return updateDirection(state, action.payload);
         }
@@ -111,13 +110,9 @@ interface DriverCtxProviderProps {
 }
 
 function DriverCtxProvider({ children }: DriverCtxProviderProps) {
-
     const routeName = useNavigationState((state) => state.routes[state.index]?.name);
 
-    
     const storeService = new PersistantStoreService();
-
-
 
     const [driverState, driverDispatch] = useReducer<DriverReducerType>(driverStateReducer, {
         currentLocation: { latitude: 5, longitude: 5, address: null },
@@ -159,27 +154,25 @@ function DriverCtxProvider({ children }: DriverCtxProviderProps) {
     });
 
     useEffect(() => {
-    switch (routeName) {
-        case RouteName.Index:
-            sortDestinationByProximity();
-            break;
-        case RouteName.Route:
-            sortDestinationByFastestRoute();
-            break;
-        case RouteName.Settings:
-            throw new Error("How are you updating destinations state in settings?");
-        default:
-            console.log(`DriverCtxProvider: Unknown route name: ${routeName}`);
-    }
-}, [routeName]);
+        switch (routeName) {
+            case RouteName.Index:
+                sortDestinationByProximity();
+                break;
+            case RouteName.Route:
+                sortDestinationByFastestRoute();
+                break;
+            case RouteName.Settings:
+                throw new Error("How are you updating destinations state in settings?");
+            default:
+                console.log(`DriverCtxProvider: Unknown route name: ${routeName}`);
+        }
+    }, [routeName]);
 
-useEffect(() => {
-    storeService.setDestinationsAsync(driverState.destinations).catch((err) => {
-        console.error("Error saving destinations: ", err);
-    });
-}, [driverState.destinations]);
-
-
+    useEffect(() => {
+        storeService.setDestinationsAsync(driverState.destinations).catch((err) => {
+            console.error("Error saving destinations: ", err);
+        });
+    }, [driverState.destinations]);
 
     function updateLocation(location: Location) {
         driverDispatch({ type: DriverActionTypes.UPDATE_LOCATION, payload: location });

@@ -4,6 +4,9 @@ import { Destination } from "@/model/Destination";
 import { getUniqueDestinationKey } from "@/model/Location";
 import { DestinationCard } from "@/components/DestinationCard";
 import { Text, View, StyleSheet, Pressable, FlatList, Modal, TextInput } from "react-native";
+import AddAddressButton from "@/components/AddAddressButton";
+import CompletionButton from "@/components/CompletionButton";
+import UpdateButton from "@/components/UpdateButton";
 
 export default function Home() {
     const { driver, addDestination, removeDestination } = useDriver();
@@ -15,6 +18,36 @@ export default function Home() {
     const handleComplete = () => {
         if (destinations.length === 0) return;
         removeDestination(destinations[0]);
+    };
+
+    //setting the scaffolding for future Update button here
+    // There is current no google maps api logic so this will kinda work with that in the future
+
+    //controls the loading state of the update button
+    const [isUpdating, setIsUpdating] = useState(false);
+    //controls the visibility of the rerouting toast
+    const [showToast, setShowToast] = useState(false);
+
+    //using antons code to sort the destinations by proximity to the driver
+    // placeholder for future logic
+    // shoutout to the goat ANTON!!
+    const { sortDestinationByProximity } = useDriver();
+
+    const handleUpdate = () => {
+        setIsUpdating(true);
+        setShowToast(true);
+        console.log("Refreshing route...");
+        // Placeholder logic for updating the route
+        // in a real app, this would involve API calls to update the route
+
+        //using antons code to sort the destinations by proximity to the driver
+        sortDestinationByProximity();
+        //Replace this with real geolocation and routing API
+
+        setTimeout(() => {
+            setIsUpdating(false);
+            setShowToast(false);
+        }, 2000);
     };
 
     const handleAdd = () => {
@@ -38,6 +71,14 @@ export default function Home() {
         <View style={styles.container}>
             <Text style={styles.title}>Home Page (but we’re never home) 🏡</Text>
             <Text style={styles.subtext}>The only ‘home’ we know is the next stop</Text>
+            <Text style={styles.location}>You are here: ... XYZ address</Text>
+            <Text style={styles.direction}>Traveling 🧭 N</Text>
+            <UpdateButton onPress={handleUpdate} loading={isUpdating} />
+            {showToast && (
+                <View style={styles.toast}>
+                    <Text style={styles.toastText}>📍 ParcelMarshall is rerouting...</Text>
+                </View>
+            )}
 
             <FlatList
                 data={destinations}
@@ -50,16 +91,12 @@ export default function Home() {
                 )}
             />
 
-            <Pressable style={styles.addBtn} onPress={() => setModalVisible(true)}>
-                <Text style={styles.addText}>➕ Add Address</Text>
-            </Pressable>
+            <AddAddressButton onPress={() => setModalVisible(true)} />
 
             {destinations.length > 0 ? (
-                <Pressable style={styles.completeBtn} onPress={handleComplete}>
-                    <Text style={styles.completeText}>Mark as Complete</Text>
-                </Pressable>
+                <CompletionButton onPress={handleComplete} label="Mark as Complete" />
             ) : (
-                <Text style={styles.doneText}>All destinations completed! 🎉</Text>
+                <CompletionButton onPress={() => {}} label="📦 Mission Complete, Marshall!" disabled />
             )}
 
             <Modal visible={modalVisible} transparent animationType="fade">
@@ -81,6 +118,22 @@ export default function Home() {
 const styles = StyleSheet.create({
     container: { padding: 20, flex: 1 },
     title: { fontSize: 24, marginBottom: 20 },
+    location: { fontSize: 16, marginBottom: 4 },
+    direction: { fontSize: 14, marginBottom: 10 },
+    updateBtn: {
+        backgroundColor: "#d9d9ff",
+        padding: 6,
+        borderRadius: 4,
+        alignSelf: "flex-start",
+        marginBottom: 20
+    },
+    card: {
+        backgroundColor: "#f2f2f2",
+        padding: 12,
+        borderRadius: 8,
+        marginBottom: 10,
+        position: "relative"
+    },
     completeBtn: {
         marginTop: 12,
         backgroundColor: "#28a745",
@@ -102,19 +155,6 @@ const styles = StyleSheet.create({
         fontStyle: "italic",
         color: "#666",
         marginBottom: 20
-    },
-    addBtn: {
-        marginTop: 16,
-        backgroundColor: "#3366ff",
-        paddingHorizontal: 20,
-        paddingVertical: 12,
-        borderRadius: 6,
-        alignSelf: "center"
-    },
-    addText: {
-        color: "white",
-        fontWeight: "bold",
-        fontSize: 16
     },
     modal: {
         backgroundColor: "white",
@@ -153,5 +193,24 @@ const styles = StyleSheet.create({
     },
     closeText: {
         fontSize: 18
+    },
+
+    //parcellmarshall toast for rerouting
+    toast: {
+        position: "absolute",
+        bottom: 40,
+        alignSelf: "center",
+        backgroundColor: "#343a40",
+        paddingHorizontal: 24,
+        paddingVertical: 14,
+        borderRadius: 12,
+        zIndex: 999,
+        elevation: 10
+    },
+    toastText: {
+        color: "white",
+        fontWeight: "bold",
+        fontSize: 20,
+        textAlign: "center"
     }
 });
