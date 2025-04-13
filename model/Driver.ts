@@ -1,4 +1,4 @@
-import { Location } from "./Location";
+import { getDistanceFrom, Location } from "./Location";
 import { Direction } from "./Direction";
 import { Destination } from "./Destination";
 
@@ -25,8 +25,12 @@ export function removeDestination(self: Driver, destination: Destination): Drive
 }
 
 export function sortDestinationsByProximity(self: Driver): Driver {
-    // TODO implment
-    return self;
+    const newDestinations = [...self.destinations];
+    newDestinations.sort((a, b) => {
+        return a.travelDistance - b.travelDistance;
+    });
+
+    return { ...self, destinations: newDestinations };
 }
 
 export function sortDestinationsByFastestRoute(self: Driver): Driver {

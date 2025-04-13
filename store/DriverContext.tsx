@@ -1,3 +1,4 @@
+import { RouteName } from "@/lib/Routes";
 import { Destination } from "@/model/Destination";
 import { Direction } from "@/model/Direction";
 import {
@@ -10,9 +11,12 @@ import {
     updateLocation
 } from "@/model/Driver";
 import { getDistanceFrom, Location } from "@/model/Location";
+
 import { createContext, useContext, useEffect, useReducer } from "react";
 import { LayoutAnimation } from "react-native";
 import { PersistantStoreService } from "./PersistantStoreService";
+
+
 
 type DriverState = Driver;
 
@@ -105,7 +109,11 @@ interface DriverCtxProviderProps {
 }
 
 function DriverCtxProvider({ children }: DriverCtxProviderProps) {
+
     const storeService = new PersistantStoreService();
+
+
+
     const [driverState, driverDispatch] = useReducer<DriverReducerType>(driverStateReducer, {
         currentLocation: { latitude: 5, longitude: 5, address: null },
         destinations: storeService.getDestinations() ?? [
@@ -114,7 +122,7 @@ function DriverCtxProvider({ children }: DriverCtxProviderProps) {
                 longitude: 5,
                 travelDuration: 20,
                 address: "318 Meadow Brook Rd, Rochester, MI 48309",
-                travelDistance: 30,
+                travelDistance: parseInt((Math.random() * 100).toFixed(0)),
                 travelDirection: { degrees: 50 }
             },
             {
@@ -122,7 +130,7 @@ function DriverCtxProvider({ children }: DriverCtxProviderProps) {
                 longitude: 5,
                 travelDuration: 20,
                 address: "Anton’s Discrete Math Asylum, UA 01001",
-                travelDistance: 12,
+                travelDistance: parseInt((Math.random() * 100).toFixed(0)),
                 travelDirection: { degrees: 50 }
             },
             {
@@ -138,7 +146,7 @@ function DriverCtxProvider({ children }: DriverCtxProviderProps) {
                 longitude: 5,
                 travelDuration: 20,
                 address: "Gavin's Rust Hideout, Rochester, MI 48309",
-                travelDistance: 42,
+                travelDistance: parseInt((Math.random() * 100).toFixed(0)),
                 travelDirection: { degrees: 50 }
             }
         ],
@@ -146,10 +154,11 @@ function DriverCtxProvider({ children }: DriverCtxProviderProps) {
     });
 
     useEffect(() => {
+
         storeService.setDestinationsAsync(driverState.destinations).catch((err) => {
             console.error("Error saving destinations: ", err);
         });
-    }, [driverState]);
+
 
     function updateLocation(location: Location) {
         driverDispatch({ type: DriverActionTypes.UPDATE_LOCATION, payload: location });
