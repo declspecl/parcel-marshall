@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDriver } from "@/hooks/useDriver";
 import { Destination } from "@/model/Destination";
 import UpdateButton from "@/components/UpdateButton";
@@ -7,12 +7,13 @@ import CompletionButton from "@/components/CompletionButton";
 import { DestinationCard } from "@/components/DestinationCard";
 import { getFormattedLocation, getUniqueDestinationKey } from "@/model/Location";
 import { Text, View, StyleSheet, Pressable, FlatList, Modal, TextInput } from "react-native";
+import { updateDestinations } from "@/lib/GoogleMapsService";
 
 //calling api
 import { getGeocode } from "../lib/GoogleMapsService";
 
 export default function Home() {
-    const { driver, addDestination, removeDestination } = useDriver();
+    const { driver, addDestination, removeDestination, setDestinations } = useDriver();
     const destinations = driver.destinations;
 
     const [modalVisible, setModalVisible] = useState(false);
@@ -31,17 +32,13 @@ export default function Home() {
     // shoutout to the goat ANTON!!
     const { sortDestinationByProximity } = useDriver();
 
-    const handleUpdate = () => {
+    const handleUpdate = async () => {
         setIsUpdating(true);
         setShowToast(true);
         console.log("Refreshing route...");
-        // Placeholder logic for updating the route
-        // in a real app, this would involve API calls to update the route
-
-        //using antons code to sort the destinations by proximity to the driver
+        const updatedDestinations = await updateDestinations(driver.currentLocation, driver.destinations);
+        setDestinations(updatedDestinations);
         sortDestinationByProximity();
-        //Replace this with real geolocation and routing API
-
         setTimeout(() => {
             setIsUpdating(false);
             setShowToast(false);
@@ -57,14 +54,14 @@ export default function Home() {
 
         const [formatted_address, latLng] = res;
         //noticed a runtime error if duplicate addresses were submitted so adding a fix for the bug
-        if (driver.destinations.some((d) => d.latitude === latLng.lat && d.longitude === latLng.lng)) {
+        if (driver.destinations.some((d) => d.latitude === latLng.lat() && d.longitude === latLng.lng())) {
             console.warn("Duplicate address detected — skipping");
             return;
         }
 
         const newDestination: Destination = {
-            latitude: latLng.lat,
-            longitude: latLng.lng,
+            latitude: latLng.lat(),
+            longitude: latLng.lng(),
             address: formatted_address,
             travelDuration: 10,
             travelDistance: 500,
