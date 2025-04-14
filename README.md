@@ -25,6 +25,14 @@ In the output, you'll find options to open the app in a
 
 You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
+## API Setup (For Devs)
+To enable address geocoding and route planning, you’ll need a valid Google Maps API key.
+To do this you wll need to create a basic .env file in the root directory with: "GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here"
+Use the actual Key as it will get passed through app.config.js to be used for API calls.
+.env is already in gitignore
+Dont Hardcode the API because Anton will find you.
+
+
 ## Get a fresh project
 
 When you're ready, run:
