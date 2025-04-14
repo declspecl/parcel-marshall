@@ -12,7 +12,7 @@ export function getUniqueDestinationKey(self: Location): string {
 
 //Changed pythagorean function to haversine formula in order to calculate distance between the two points
 export function getHaversineDistance(A: Location, B: Location): number {
-    const radius = 0; //radius needs to be changed based on data provided
+    const radius = 6371; //Earth radius in kilometers
 
     const degreesToRadians = (degrees: number) => (degrees * Math.PI) / 180;
     const lat1 = A.latitude;
