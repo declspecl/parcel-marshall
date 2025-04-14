@@ -24,7 +24,7 @@ import CompletionButton from "@/components/CompletionButton";
 import UpdateButton from "@/components/UpdateButton";
 
 //api call
-import { getGeocode } from "../API/GoogleMapsService";
+import { getGeocode } from "../lib/GoogleMapsService";
 
 export default function Route() {
     const { driver, addDestination, removeDestination } = useDriver();

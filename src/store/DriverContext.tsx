@@ -19,7 +19,6 @@ import { PersistantStoreService } from "./PersistantStoreService";
 import { useNavigationState } from "@react-navigation/native"; // You had the wrong quotes in original
 import { LocationService } from "@/lib/LocationService";
 
-
 type DriverState = Driver;
 
 interface DriverContextType {
@@ -217,7 +216,6 @@ function DriverCtxProvider({ children }: DriverCtxProviderProps) {
         });
     }, [driverState.destinations]);
 
-
     useEffect(() => {
         const locationService = new LocationService();
         const getLocation = async () => {
@@ -236,7 +234,6 @@ function DriverCtxProvider({ children }: DriverCtxProviderProps) {
             clearInterval(interval);
         };
     });
-
 
     function updateLocation(location: Location) {
         driverDispatch({ type: DriverActionTypes.UPDATE_LOCATION, payload: location });

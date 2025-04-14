@@ -9,7 +9,7 @@ import CompletionButton from "@/components/CompletionButton";
 import UpdateButton from "@/components/UpdateButton";
 
 //calling api
-import { getGeocode } from "../API/GoogleMapsService";
+import { getGeocode } from "../lib/GoogleMapsService";
 
 export default function Home() {
     const { driver, addDestination, removeDestination } = useDriver();
