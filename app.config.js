@@ -23,4 +23,4 @@ export default ({ config }) => ({
         googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY || ""
     }
 });
-//this wont crash if variable is missing
+//this wont crash if variable is missing but I needed it in .js or it was annoying

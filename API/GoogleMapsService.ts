@@ -12,39 +12,40 @@
  * (Seriously though don’t hardcode the API key. Anton will find you.)
  */
 
-import { Destination } from "@/model/Destination";
-import {
-    Client,
-    GeocodeResponse,
-    LatLng,
-    LatLngLiteral,
-    LatLngLiteralVerbose
-} from "@googlemaps/google-maps-services-js";
+//okay I am trying a fetch request to the Google Maps API
+//I am reading that this is an okay fix for EXPO before using a backend
+//Moving forward, a backend will have better security as the API key will be hidden completely
 import Constants from "expo-constants";
 
-//using the key from env file 😈
 const GOOGLE_API_KEY = Constants.expoConfig?.extra?.googleMapsApiKey ?? "";
-//returns null if the key is not set
-const googleClient = new Client({});
 
-export async function getGeocode(address: string): Promise<[string, LatLngLiteral] | null> {
-    const response: GeocodeResponse = await googleClient.geocode({
-        params: {
-            key: GOOGLE_API_KEY,
-            address
-        },
-        adapter: "xhr",
-        withCredentials: false,
-        transformRequest: [
-            (data, headers) => {
-                if (headers) {
-                    delete headers["User-Agent"];
-                }
-                return data;
-            }
-        ]
-    });
+/**
+ * Fetches geolocation data for a given address using the Google Maps Geocoding API.
+ * Returns null if no results or API error.
+ */
+export async function getGeocode(address: string): Promise<[string, { lat: number; lng: number }] | null> {
+    if (!GOOGLE_API_KEY) {
+        console.warn("Missing Google Maps API key.");
+        return null;
+    }
 
-    const result = response.data.results[0];
-    return result ? [result.formatted_address, result.geometry.location] : null;
+    try {
+        const response = await fetch(
+            `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
+                address
+            )}&key=${GOOGLE_API_KEY}`
+        );
+        const data = await response.json();
+
+        if (data.status !== "OK" || !data.results?.length) {
+            console.warn("Geocoding failed:", data.status);
+            return null;
+        }
+
+        const result = data.results[0];
+        return [result.formatted_address, result.geometry.location];
+    } catch (error) {
+        console.error("Geocoding error:", error);
+        return null;
+    }
 }

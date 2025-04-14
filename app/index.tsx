@@ -8,6 +8,9 @@ import AddAddressButton from "@/components/AddAddressButton";
 import CompletionButton from "@/components/CompletionButton";
 import UpdateButton from "@/components/UpdateButton";
 
+//calling api
+import { getGeocode } from "../API/GoogleMapsService";
+
 export default function Home() {
     const { driver, addDestination, removeDestination } = useDriver();
     const destinations = driver.destinations;
@@ -50,16 +53,29 @@ export default function Home() {
         }, 2000);
     };
 
-    const handleAdd = () => {
+    //new address
+    const handleAdd = async () => {
         if (!address.trim()) return;
+
+        const res = await getGeocode(address);
+        if (!res) return;
+
+        const [formatted_address, latLng] = res;
+        //noticed a runtime error if duplicate addresses were submitted so adding a fix for the bug
+        if (driver.destinations.some((d) => d.latitude === latLng.lat && d.longitude === latLng.lng)) {
+            console.warn("Duplicate address detected — skipping");
+            return;
+        }
+
         const newDestination: Destination = {
-            latitude: 5,
-            longitude: 56,
-            address,
+            latitude: latLng.lat,
+            longitude: latLng.lng,
+            address: formatted_address,
             travelDuration: 10,
             travelDistance: 500,
             travelDirection: { degrees: 0 }
         };
+
         addDestination(newDestination);
         setAddress("");
         setModalVisible(false);
