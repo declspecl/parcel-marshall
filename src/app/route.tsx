@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useDriver } from "@/hooks/useDriver";
-import { getFastestRoute } from "@/model/Driver";
+import { getFastestRoute, sortDestinationsByFastestRoute, updateDestination } from "@/model/Driver";
 import { Destination } from "@/model/Destination";
 import UpdateButton from "@/components/UpdateButton";
 import { getGeocode, updateDestinations } from "@/lib/GoogleMapsService";
@@ -12,14 +12,7 @@ import { Text, View, StyleSheet, FlatList, Pressable, Modal, TextInput } from "r
 
 export default function Route() {
     const { driver, addDestination, removeDestination, setDestinations } = useDriver();
-    //load driver data from global state once then set it to local state to avoid re-renders between pages
-    const [virtualRoute, setVirtualRoute] = useState<Destination[]>(driver.destinations);
-
-    // Initial route calculation when Route page loads
-    // commenting out for now but it is here if needed
-    //useEffect(() => {
-    //    setVirtualRoute(getFastestRoute(driver.currentLocation, driver.destinations));
-    //}, []);
+    const destinations = driver.destinations;
 
     const [modalVisible, setModalVisible] = useState(false);
     const [address, setAddress] = useState("");
@@ -47,7 +40,7 @@ export default function Route() {
 
         // Add to global state
         // Update local visual route
-        setVirtualRoute(getFastestRoute(driver.currentLocation, [...driver.destinations, newDestination]));
+        addDestination(newDestination);
 
         // Reset form
         setAddress("");
@@ -56,12 +49,6 @@ export default function Route() {
 
     const handleRemove = (destination: Destination) => {
         removeDestination(destination);
-        setVirtualRoute(
-            getFastestRoute(
-                driver.currentLocation,
-                driver.destinations.filter((d) => d !== destination)
-            )
-        );
     };
 
     const handleUpdate = async () => {
@@ -76,7 +63,8 @@ export default function Route() {
         );
         const newDestinations = await updateDestinations(driver.currentLocation, driver.destinations);
         const sorted = getFastestRoute(driver.currentLocation, newDestinations);
-        setVirtualRoute(sorted);
+        setDestinations(sorted);
+        sortDestinationsByFastestRoute(driver);
         console.log(
             "✅ After sort:",
             sorted.map((d) => d.address)
@@ -87,18 +75,14 @@ export default function Route() {
         }, 2000);
     };
 
-    const current = virtualRoute[0];
+    const current = destinations[0];
 
     const handleComplete = () => {
-        if (virtualRoute.length === 0) return;
+        const toRemove = destinations[0];
 
-        const toRemove = virtualRoute[0];
-
-        removeDestination(toRemove); // Updates global state
-        setVirtualRoute((prev) => prev.filter((d) => d !== toRemove)); // Updates local view
+        removeDestination(toRemove);
     };
 
-    const dataToDisplay = virtualRoute.length > 0 ? virtualRoute : driver.destinations;
     //will update title and text to be more relevant to the app
     //we want a professional look and feel, not a meme fest
     //but for now I like the memes 😎
@@ -116,12 +100,12 @@ export default function Route() {
             )}
 
             <FlatList
-                data={dataToDisplay}
+                data={destinations}
                 keyExtractor={(item) => getUniqueDestinationKey(item)}
                 renderItem={({ item }) => (
                     <DestinationCard
                         destination={item}
-                        isCurrent={getUniqueDestinationKey(item) === getUniqueDestinationKey(dataToDisplay[0])}
+                        isCurrent={getUniqueDestinationKey(item) === getUniqueDestinationKey(destinations[0])}
                     />
                 )}
             />
@@ -130,8 +114,8 @@ export default function Route() {
 
             <CompletionButton
                 onPress={handleComplete}
-                label={virtualRoute.length > 0 ? "Mark as Complete" : "📦 Mission Complete, Marshall!"}
-                disabled={virtualRoute.length === 0}
+                label={destinations.length > 0 ? "Mark as Complete" : "📦 Mission Complete, Marshall!"}
+                disabled={destinations.length === 0}
             />
 
             <Modal visible={modalVisible} transparent animationType="fade">
