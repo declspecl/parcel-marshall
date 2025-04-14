@@ -5,13 +5,17 @@ import { useNavigationState } from "@react-navigation/native";
 import { Driver, Location, Destination, Direction } from "@/model";
 import { PersistantStoreService } from "@/store/PersistantStoreService";
 import { DriverActionTypes, DriverReducerType, driverStateReducer } from "@/state/DriverStateReducer";
+import { getGeocode } from "@/lib/GoogleMapsService";
 
 export interface DriverContextType {
     driver: Driver;
     updateLocation: (location: Location) => void;
     addDestination: (destination: Destination) => void;
     removeDestination: (destination: Destination) => void;
-    updateDestination: (originalDestination: Destination, updatedData: Partial<Destination>) => void;
+    updateDestination: (
+        originalDestination: Destination,
+        updatedData: Omit<Destination, "latitude" | "longitude"> & Partial<Destination>
+    ) => void;
     sortDestinationByProximity: () => void;
     sortDestinationByFastestRoute: () => void;
     updateDirection: (direction: Direction) => void;
@@ -75,16 +79,45 @@ export function DriverCtxProvider({ children }: DriverCtxProviderProps) {
     function updateLocation(location: Location) {
         driverDispatch({ type: DriverActionTypes.UPDATE_LOCATION, payload: location });
     }
-    function addDestination(destination: Destination) {
-        driverDispatch({ type: DriverActionTypes.ADD_DESTINATION, payload: destination });
+    function addDestination(destination: Omit<Destination, "latitude" | "longitude"> & Partial<Destination>) {
+        getGeocode(destination.address!).then((res) => {
+            if (!res) return;
+
+            const [formatted_address, latLng] = res;
+
+            const newDestination: Destination = {
+                ...destination,
+                latitude: latLng.lat,
+                longitude: latLng.lng,
+                address: formatted_address
+            };
+
+            driverDispatch({ type: DriverActionTypes.ADD_DESTINATION, payload: newDestination });
+        });
     }
     function removeDestination(destination: Destination) {
         driverDispatch({ type: DriverActionTypes.REMOVE_DESTINATION, payload: destination });
     }
-    function updateDestination(originalDestination: Destination, updatedData: Partial<Destination>) {
-        driverDispatch({
-            type: DriverActionTypes.UPDATE_DESTINATION,
-            payload: { originalDestination, updatedData }
+    function updateDestination(
+        originalDestination: Destination,
+        updatedData: Omit<Destination, "latitude" | "longitude"> & Partial<Destination>
+    ) {
+        getGeocode(updatedData.address!).then((res) => {
+            if (!res) return;
+
+            const [formatted_address, latLng] = res;
+
+            const newDestination: Destination = {
+                ...updatedData,
+                latitude: latLng.lat,
+                longitude: latLng.lng,
+                address: formatted_address
+            };
+
+            driverDispatch({
+                type: DriverActionTypes.UPDATE_DESTINATION,
+                payload: { originalDestination, updatedData }
+            });
         });
     }
     function sortDestinationByProximity() {

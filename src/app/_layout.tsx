@@ -5,6 +5,11 @@ import { useEffect, useState } from "react";
 import SplashScreen from "@/components/SplashScreen";
 import { RouteLabel, RouteName } from "@/lib/Routes";
 import { initGoogleMapsAPI } from "@/lib/GoogleMapsService";
+import { useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import SplashScreen from "@/components/SplashScreen";
+import { RouteLabel, RouteName } from "@/lib/Routes";
+import { DriverCtxProvider } from "@/context/DriverContext";
 
 export default function RootLayout() {
     const [isSplashVisible, setSplashVisible] = useState(true);

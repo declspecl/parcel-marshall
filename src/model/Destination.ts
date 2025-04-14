@@ -5,6 +5,7 @@ export interface Destination extends Location {
     readonly travelDuration: number;
     readonly travelDistance: number;
     readonly travelDirection: Direction;
+    readonly address: string;
 }
 
 export function setTravelDuration(self: Destination, travelDuration: number): Destination {
