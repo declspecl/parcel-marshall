@@ -10,15 +10,28 @@ export function getUniqueDestinationKey(self: Location): string {
     return `${self.latitude}-${self.longitude}-${self.address || "n/a"}`;
 }
 
-// This function calculates the distance between two locations using the Pythagorean theorem.
-//using for testing purposes - STIN
-//hopefully this will create separate functionality of the update button on each page
-//with this working for routes
-//will switch this with real destination data later from the API
-export function getDistanceFrom(a: Location, b: Location): number {
-    const dx = a.latitude - b.latitude;
-    const dy = a.longitude - b.longitude;
-    return Math.sqrt(dx * dx + dy * dy);
+//Changed pythagorean function to haversine formula in order to calculate distance between the two points
+export function getHaversineDistance(A: Location, B: Location): number {
+    const radius = 0; //radius needs to be changed based on data provided
+
+    const degreesToRadians = (degrees: number) => (degrees * Math.PI) / 180;
+    const lat1 = A.latitude;
+    const lat2 = B.latitude;
+    const lon1 = A.longitude;
+    const lon2 = B.longitude;
+
+    const dLat = degreesToRadians(lat2 - lat1);
+    const dLon = degreesToRadians(lon2 - lon1);
+
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(degreesToRadians(lat1)) * Math.cos(degreesToRadians(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    const distance = radius * c;
+
+    return distance;
 }
 
 export function getDirectionTo(self: Location, other: Location): Direction {

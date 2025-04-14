@@ -1,6 +1,6 @@
 import { Direction } from "./Direction";
 import { Destination } from "./Destination";
-import { getDistanceFrom, getUniqueDestinationKey, Location } from "./Location";
+import { getHaversineDistance, getUniqueDestinationKey, Location } from "./Location";
 
 export interface Driver {
     readonly currentLocation: Location;
@@ -64,7 +64,7 @@ export function getFastestRoute(currentLocation: Location, destinations: Destina
     let current = currentLocation;
 
     while (remaining.length > 0) {
-        remaining.sort((a, b) => getDistanceFrom(current, a) - getDistanceFrom(current, b));
+        remaining.sort((a, b) => getHaversineDistance(current, a) - getHaversineDistance(current, b));
         const next = remaining.shift();
         if (next) {
             sorted.push(next);
