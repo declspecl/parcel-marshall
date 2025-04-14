@@ -1,13 +1,16 @@
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { DriverCtxProvider } from "@/context/DriverContext";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import SplashScreen from "@/components/SplashScreen";
 import { RouteLabel, RouteName } from "@/lib/Routes";
+import { initGoogleMapsAPI } from "@/lib/GoogleMapsService";
 
 export default function RootLayout() {
     const [isSplashVisible, setSplashVisible] = useState(true);
-
+    useEffect(() => {
+        initGoogleMapsAPI();
+    }, []);
     if (isSplashVisible) {
         return <SplashScreen onFinish={() => setSplashVisible(false)} />;
     }

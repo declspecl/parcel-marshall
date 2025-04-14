@@ -11,6 +11,7 @@ EXPO_PUBLIC_GOOGLE_MAPS_API_KEY=...abc...
 ## How to Run
 
 Run these commands:
+
 1. `npm install`
 2. `npm run start`
 

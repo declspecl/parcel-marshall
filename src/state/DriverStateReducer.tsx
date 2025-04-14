@@ -17,7 +17,8 @@ export enum DriverActionTypes {
     UPDATE_DESTINATION = "UPDATE_DESTINATION",
     SORT_DEST_BY_PROXIMITY = "SORT_DEST_BY_PROXIMITY",
     SORT_DEST_BY_FASTEST_ROUTE = "SORT_DEST_BY_FASTEST_ROUTE",
-    UPDATE_DIRECTION = "UPDATE_DIRECTION"
+    UPDATE_DIRECTION = "UPDATE_DIRECTION",
+    SET_DESTINATIONS = "SET_DESTINATIONS"
 }
 
 type UpdateLocationAction = {
@@ -56,6 +57,11 @@ type UpdateDirectionAction = {
     payload: Direction;
 };
 
+type SetDestinationsActions = {
+    type: DriverActionTypes.SET_DESTINATIONS;
+    payload: Destination[];
+};
+
 type DriverStateAction =
     | UpdateLocationAction
     | AddDestinationAction
@@ -63,7 +69,8 @@ type DriverStateAction =
     | UpdateDestinationAction
     | SortDestinationByProximityAction
     | SortDestinationByFastestRouteAction
-    | UpdateDirectionAction;
+    | UpdateDirectionAction
+    | SetDestinationsActions;
 
 export type DriverReducerType = (prevState: Driver, action: DriverStateAction) => Driver;
 export const driverStateReducer: DriverReducerType = (state, action) => {
@@ -88,6 +95,9 @@ export const driverStateReducer: DriverReducerType = (state, action) => {
         }
         case DriverActionTypes.UPDATE_DIRECTION: {
             return updateDirection(state, action.payload);
+        }
+        case DriverActionTypes.SET_DESTINATIONS: {
+            return { ...state, destinations: action.payload };
         }
         default: {
             return state;

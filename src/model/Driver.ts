@@ -92,17 +92,6 @@ this will most likely work more as intended with API data
 */
 
 export function sortDestinationsByFastestRoute(self: Driver): Driver {
-    console.log("📦 Sorting full route from currentLocation:", self.currentLocation);
-    console.log(
-        "➡️ Before sort:",
-        self.destinations.map((d) => d.address)
-    );
-
     const sorted = getFastestRoute(self.currentLocation, self.destinations);
-
-    console.log(
-        "✅ After sort:",
-        sorted.map((d) => d.address)
-    );
     return { ...self, destinations: sorted };
 }

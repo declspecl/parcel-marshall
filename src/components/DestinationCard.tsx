@@ -7,6 +7,7 @@ import { getCompassDirection } from "@/model/Direction";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { getCompassDirectionAbbreviation } from "@/model/CompassDirection";
 import { Compass } from "./Compass";
+import { getGeocode } from "../lib/GoogleMapsService";
 
 interface DestinationCardProps {
     readonly destination: Destination;
@@ -14,19 +15,39 @@ interface DestinationCardProps {
 }
 
 export function DestinationCard({ destination, isCurrent = false }: DestinationCardProps) {
-    const { removeDestination, updateDestination } = useDriver();
+    const { driver, removeDestination, updateDestination } = useDriver();
     const [isModalVisible, setIsModalVisible] = useState(false);
 
-    const handleSaveAddress = (newAddress: string) => {
-        updateDestination(destination, { address: newAddress });
+    const handleSaveAddress = async (newAddress: string) => {
+        if (!newAddress.trim()) return;
+
+        const res = await getGeocode(newAddress);
+        if (!res) return;
+
+        const [formatted_address, latLng] = res;
+        if (driver.destinations.some((d) => d.latitude === latLng.lat() && d.longitude === latLng.lng())) {
+            console.warn("Duplicate address detected — skipping");
+            return;
+        }
+
+        const newDestination: Destination = {
+            latitude: latLng.lat(),
+            longitude: latLng.lng(),
+            address: formatted_address,
+            travelDuration: 0,
+            travelDistance: 0,
+            travelDirection: { degrees: 0 }
+        };
+
         setIsModalVisible(false);
+        updateDestination(destination, newDestination);
     };
 
     return (
         <>
             <View style={[styles.card, isCurrent && styles.currentCard]}>
                 <View>
-                    <Text>{destination.address}</Text>
+                    <Text style={{ textOverflow: "clip" }}>{destination.address.substring(0, 35)}</Text>
                     <Text style={{ display: "flex", alignItems: "center", gap: 4 }}>
                         <Text>{destination.travelDistance}mi </Text>
 
@@ -79,7 +100,8 @@ const styles = StyleSheet.create({
         display: "flex",
         flexDirection: "row",
         justifyContent: "space-between",
-        alignItems: "center"
+        alignItems: "center",
+        width: "auto"
     },
     currentCard: {
         borderColor: "#3366ff",
@@ -87,6 +109,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#e6f0ff"
     },
     buttonsContainer: {
+        flexGrow: 1,
         display: "flex",
         flexDirection: "row",
         alignItems: "center",
