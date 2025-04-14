@@ -36,6 +36,10 @@ export async function getGeocode(address: string): Promise<[string, google.maps.
     }
 }
 
+function metresToMiles(metres: number): number {
+    return metres / 1609.344;
+}
+
 export async function updateDestinations(currLocation: Location, destinations: Location[]): Promise<Destination[]> {
     if (distanceMatrixService === undefined) return [];
     const transformedDestinations: google.maps.LatLngLiteral[] = destinations.map((value) => {
@@ -59,8 +63,8 @@ export async function updateDestinations(currLocation: Location, destinations: L
         address: matrix.destinationAddresses[index],
         latitude: dest.latitude,
         longitude: dest.longitude,
-        travelDuration: elements[index].duration.value,
-        travelDistance: elements[index].distance.value,
+        travelDuration: parseFloat(metresToMiles(elements[index].duration.value).toFixed(1)),
+        travelDistance: parseFloat(metresToMiles(elements[index].distance.value).toFixed(1)),
         travelDirection: { degrees: 0 }
     }));
     return newDestinations;
