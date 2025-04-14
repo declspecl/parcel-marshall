@@ -8,7 +8,6 @@ import { DestinationCard } from "@/components/DestinationCard";
 import { getFormattedLocation, getUniqueDestinationKey } from "@/model/Location";
 import { Text, View, StyleSheet, Pressable, FlatList, Modal, TextInput } from "react-native";
 
-//calling api
 import { getGeocode } from "../lib/GoogleMapsService";
 
 export default function Home() {
@@ -56,7 +55,6 @@ export default function Home() {
         if (!res) return;
 
         const [formatted_address, latLng] = res;
-        //noticed a runtime error if duplicate addresses were submitted so adding a fix for the bug
         if (driver.destinations.some((d) => d.latitude === latLng.lat && d.longitude === latLng.lng)) {
             console.warn("Duplicate address detected — skipping");
             return;
