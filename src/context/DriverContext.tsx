@@ -87,8 +87,8 @@ export function DriverCtxProvider({ children }: DriverCtxProviderProps) {
 
             const newDestination: Destination = {
                 ...destination,
-                latitude: latLng.lat,
-                longitude: latLng.lng,
+                latitude: latLng.lat(),
+                longitude: latLng.lng(),
                 address: formatted_address
             };
 
@@ -109,8 +109,8 @@ export function DriverCtxProvider({ children }: DriverCtxProviderProps) {
 
             const newDestination: Destination = {
                 ...updatedData,
-                latitude: latLng.lat,
-                longitude: latLng.lng,
+                latitude: latLng.lat(),
+                longitude: latLng.lng(),
                 address: formatted_address
             };
 

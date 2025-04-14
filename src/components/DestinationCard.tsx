@@ -25,14 +25,14 @@ export function DestinationCard({ destination, isCurrent = false }: DestinationC
         if (!res) return;
 
         const [formatted_address, latLng] = res;
-        if (driver.destinations.some((d) => d.latitude === latLng.lat && d.longitude === latLng.lng)) {
+        if (driver.destinations.some((d) => d.latitude === latLng.lat() && d.longitude === latLng.lng())) {
             console.warn("Duplicate address detected — skipping");
             return;
         }
 
         const newDestination: Destination = {
-            latitude: latLng.lat,
-            longitude: latLng.lng,
+            latitude: latLng.lat(),
+            longitude: latLng.lng(),
             address: formatted_address,
             travelDuration: 0,
             travelDistance: 0,
@@ -47,7 +47,7 @@ export function DestinationCard({ destination, isCurrent = false }: DestinationC
         <>
             <View style={[styles.card, isCurrent && styles.currentCard]}>
                 <View>
-                    <Text>{destination.address}</Text>
+                    <Text style={{ textOverflow: "clip" }}>{destination.address.substring(0, 35)}</Text>
                     <Text style={{ display: "flex", alignItems: "center", gap: 4 }}>
                         <Text>{destination.travelDistance}mi </Text>
 
@@ -57,9 +57,6 @@ export function DestinationCard({ destination, isCurrent = false }: DestinationC
                         </Text>
 
                         <Compass destination={destination} />
-                    </Text>
-                    <Text>
-                        DEBUG: {destination.latitude}deg N {destination.longitude}deg E
                     </Text>
                 </View>
 
@@ -103,7 +100,8 @@ const styles = StyleSheet.create({
         display: "flex",
         flexDirection: "row",
         justifyContent: "space-between",
-        alignItems: "center"
+        alignItems: "center",
+        width: "auto"
     },
     currentCard: {
         borderColor: "#3366ff",
@@ -111,6 +109,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#e6f0ff"
     },
     buttonsContainer: {
+        flexGrow: 1,
         display: "flex",
         flexDirection: "row",
         alignItems: "center",
