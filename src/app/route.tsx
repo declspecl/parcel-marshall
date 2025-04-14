@@ -3,7 +3,7 @@ import { useDriver } from "@/hooks/useDriver";
 import { getFastestRoute } from "@/model/Driver";
 import { Destination } from "@/model/Destination";
 import UpdateButton from "@/components/UpdateButton";
-import { getGeocode } from "@/lib/GoogleMapsService";
+import { getGeocode, updateDestinations } from "@/lib/GoogleMapsService";
 import AddAddressButton from "@/components/AddAddressButton";
 import CompletionButton from "@/components/CompletionButton";
 import { DestinationCard } from "@/components/DestinationCard";
@@ -11,7 +11,7 @@ import { getFormattedLocation, getUniqueDestinationKey } from "@/model/Location"
 import { Text, View, StyleSheet, FlatList, Pressable, Modal, TextInput } from "react-native";
 
 export default function Route() {
-    const { driver, addDestination, removeDestination } = useDriver();
+    const { driver, addDestination, removeDestination, setDestinations } = useDriver();
     //load driver data from global state once then set it to local state to avoid re-renders between pages
     const [virtualRoute, setVirtualRoute] = useState<Destination[]>(driver.destinations);
 
@@ -37,8 +37,8 @@ export default function Route() {
         const [formatted_address, latLng] = res;
 
         const newDestination: Destination = {
-            latitude: latLng.lat,
-            longitude: latLng.lng,
+            latitude: latLng.lat(),
+            longitude: latLng.lng(),
             address: formatted_address,
             travelDuration: 10, // swap these two with the API call to get the duration and distance later
             travelDistance: 500,
@@ -46,8 +46,6 @@ export default function Route() {
         };
 
         // Add to global state
-        addDestination(newDestination);
-
         // Update local visual route
         setVirtualRoute(getFastestRoute(driver.currentLocation, [...driver.destinations, newDestination]));
 
@@ -66,7 +64,7 @@ export default function Route() {
         );
     };
 
-    const handleUpdate = () => {
+    const handleUpdate = async () => {
         setIsUpdating(true);
         setShowToast(true);
 
@@ -76,7 +74,8 @@ export default function Route() {
             "➡️ Before sort:",
             driver.destinations.map((d) => d.address)
         );
-        const sorted = getFastestRoute(driver.currentLocation, driver.destinations);
+        const newDestinations = await updateDestinations(driver.currentLocation, driver.destinations);
+        const sorted = getFastestRoute(driver.currentLocation, newDestinations);
         setVirtualRoute(sorted);
         console.log(
             "✅ After sort:",
