@@ -1,4 +1,4 @@
-import { getDistanceFrom, Location } from "./Location";
+import { getDistanceFrom, getUniqueDestinationKey, Location } from "./Location";
 import { Direction } from "./Direction";
 import { Destination } from "./Destination";
 
@@ -20,12 +20,37 @@ export function addDestination(self: Driver, destination: Destination): Driver {
 export function removeDestination(self: Driver, destination: Destination): Driver {
     const newDestinations = [...self.destinations];
     const index = newDestinations.indexOf(destination);
-    newDestinations.splice(index, 1);
+    if (index > -1) {
+        // Only splice if found
+        newDestinations.splice(index, 1);
+    } else {
+        console.warn("removeDestination: Destination not found.");
+    }
     return { ...self, destinations: newDestinations };
 }
 
 export function updateDirection(self: Driver, direction: Direction): Driver {
     return { ...self, direction };
+}
+
+export function updateDestination(
+    self: Driver,
+    originalDestination: Destination,
+    updatedDestinationData: Partial<Destination>
+): Driver {
+    const index = self.destinations.findIndex(
+        (d) => getUniqueDestinationKey(d) === getUniqueDestinationKey(originalDestination)
+    );
+
+    if (index === -1) {
+        console.warn("updateDestination: Original destination not found, returning original state.");
+        return self;
+    }
+
+    const finalDestinations = [...self.destinations];
+    finalDestinations[index] = { ...finalDestinations[index], ...updatedDestinationData };
+
+    return { ...self, destinations: finalDestinations };
 }
 
 //adding code for testing purposes -STIN

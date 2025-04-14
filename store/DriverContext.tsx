@@ -7,16 +7,18 @@ import {
     removeDestination,
     sortDestinationsByFastestRoute,
     sortDestinationsByProximity,
+    updateDestination,
     updateDirection,
     updateLocation
 } from "@/model/Driver";
-import { getDistanceFrom, Location } from "@/model/Location";
+import { Location } from "@/model/Location";
 
 import { createContext, useContext, useEffect, useReducer } from "react";
-import { LayoutAnimation } from "react-native";
 import { PersistantStoreService } from "./PersistantStoreService";
+
 import { useNavigationState } from "@react-navigation/native"; // You had the wrong quotes in original
 import { LocationService } from "@/lib/LocationService";
+
 
 type DriverState = Driver;
 
@@ -25,6 +27,7 @@ interface DriverContextType {
     updateLocation: (location: Location) => void;
     addDestination: (destination: Destination) => void;
     removeDestination: (destination: Destination) => void;
+    updateDestination: (originalDestination: Destination, updatedData: Partial<Destination>) => void; // Added
     sortDestinationByProximity: () => void;
     sortDestinationByFastestRoute: () => void;
     updateDirection: (direction: Direction) => void;
@@ -36,11 +39,13 @@ enum DriverActionTypes {
     UPDATE_LOCATION = "UPDATE_LOCATION",
     ADD_DESTINATION = "ADD_DESTINATION",
     REMOVE_DESTINATION = "REMOVE_DESTINATION",
+    UPDATE_DESTINATION = "UPDATE_DESTINATION", // Added
     SORT_DEST_BY_PROXIMITY = "SORT_DEST_BY_PROXIMITY",
     SORT_DEST_BY_FASTEST_ROUTE = "SORT_DEST_BY_FASTEST_ROUTE",
     UPDATE_DIRECTION = "UPDATE_DIRECTION"
 }
 
+// Action Types
 type UpdateLocationAction = {
     type: DriverActionTypes.UPDATE_LOCATION;
     payload: Location;
@@ -56,6 +61,15 @@ type RemoveDestinationAction = {
     payload: Destination;
 };
 
+// Added Action Type
+type UpdateDestinationAction = {
+    type: DriverActionTypes.UPDATE_DESTINATION;
+    payload: {
+        originalDestination: Destination;
+        updatedData: Partial<Destination>;
+    };
+};
+
 type SortDestinationByProximityAction = {
     type: DriverActionTypes.SORT_DEST_BY_PROXIMITY;
 };
@@ -69,14 +83,17 @@ type UpdateDirectionAction = {
     payload: Direction;
 };
 
+// Union Type including new action
 type DriverStateAction =
     | UpdateLocationAction
     | AddDestinationAction
     | RemoveDestinationAction
+    | UpdateDestinationAction // Added
     | SortDestinationByProximityAction
     | SortDestinationByFastestRouteAction
     | UpdateDirectionAction;
 
+// Reducer
 type DriverReducerType = (prevState: Driver, action: DriverStateAction) => Driver;
 const driverStateReducer: DriverReducerType = (state, action) => {
     switch (action.type) {
@@ -89,18 +106,22 @@ const driverStateReducer: DriverReducerType = (state, action) => {
         case DriverActionTypes.REMOVE_DESTINATION: {
             return removeDestination(state, action.payload);
         }
+        // Added Reducer Case
+        case DriverActionTypes.UPDATE_DESTINATION: {
+            return updateDestination(state, action.payload.originalDestination, action.payload.updatedData);
+        }
         case DriverActionTypes.SORT_DEST_BY_PROXIMITY: {
             return sortDestinationsByProximity(state);
         }
-        //fixed typo in action type
         case DriverActionTypes.SORT_DEST_BY_FASTEST_ROUTE: {
             return sortDestinationsByFastestRoute(state);
         }
-
         case DriverActionTypes.UPDATE_DIRECTION: {
             return updateDirection(state, action.payload);
         }
         default: {
+            // Ensure exhaustive check if needed, or just return state
+            // const exhaustiveCheck: never = action;
             return state;
         }
     }
@@ -112,7 +133,6 @@ interface DriverCtxProviderProps {
 
 function DriverCtxProvider({ children }: DriverCtxProviderProps) {
     const routeName = useNavigationState((state) => state.routes[state.index]?.name);
-
     const storeService = new PersistantStoreService();
 
     const [driverState, driverDispatch] = useReducer<DriverReducerType>(driverStateReducer, {
@@ -121,20 +141,16 @@ function DriverCtxProvider({ children }: DriverCtxProviderProps) {
             {
                 latitude: 4.7,
                 longitude: 5.7,
-                //travelDuration: 20,
                 travelDuration: 60,
                 address: "318 Meadow Brook Rd, Rochester, MI 48309",
-                //travelDistance: parseInt((Math.random() * 100).toFixed(0)),
                 travelDistance: 60,
-                //travelDirection: { degrees: 50 }
                 travelDirection: { degrees: 180 }
             },
             {
-                latitude: 5.1, // testing purposes
+                latitude: 5.1,
                 longitude: 5.1,
                 travelDuration: 20,
                 address: "Anton’s Discrete Math Asylum, UA 01001",
-                //travelDistance: parseInt((Math.random() * 100).toFixed(0)),
                 travelDistance: 10,
                 travelDirection: { degrees: 90 }
             },
@@ -151,7 +167,6 @@ function DriverCtxProvider({ children }: DriverCtxProviderProps) {
                 longitude: 4.1,
                 travelDuration: 50,
                 address: "Gavin's Rust Hideout, Rochester, MI 48309",
-                //travelDistance: parseInt((Math.random() * 100).toFixed(0)),
                 travelDistance: 70,
                 travelDirection: { degrees: 45 }
             },
@@ -186,11 +201,8 @@ function DriverCtxProvider({ children }: DriverCtxProviderProps) {
     useEffect(() => {
         switch (routeName) {
             case RouteName.Index:
-                //sortDestinationByProximity(); commenting out for now as i am handling this
-                // in update button
                 break;
             case RouteName.Route:
-                //sortDestinationByFastestRoute();
                 break;
             case RouteName.Settings:
                 break;
@@ -204,6 +216,7 @@ function DriverCtxProvider({ children }: DriverCtxProviderProps) {
             console.error("Error saving destinations: ", err);
         });
     }, [driverState.destinations]);
+
 
     useEffect(() => {
         const locationService = new LocationService();
@@ -224,6 +237,7 @@ function DriverCtxProvider({ children }: DriverCtxProviderProps) {
         };
     });
 
+
     function updateLocation(location: Location) {
         driverDispatch({ type: DriverActionTypes.UPDATE_LOCATION, payload: location });
     }
@@ -232,6 +246,13 @@ function DriverCtxProvider({ children }: DriverCtxProviderProps) {
     }
     function removeDestination(destination: Destination) {
         driverDispatch({ type: DriverActionTypes.REMOVE_DESTINATION, payload: destination });
+    }
+    // Added Dispatch Function
+    function updateDestination(originalDestination: Destination, updatedData: Partial<Destination>) {
+        driverDispatch({
+            type: DriverActionTypes.UPDATE_DESTINATION,
+            payload: { originalDestination, updatedData }
+        });
     }
     function sortDestinationByProximity() {
         driverDispatch({ type: DriverActionTypes.SORT_DEST_BY_PROXIMITY });
@@ -243,11 +264,13 @@ function DriverCtxProvider({ children }: DriverCtxProviderProps) {
         driverDispatch({ type: DriverActionTypes.UPDATE_DIRECTION, payload: direction });
     }
 
+    // Context Value including new function
     const ctxValue: DriverContextType = {
         driver: driverState,
         updateLocation,
         addDestination,
         removeDestination,
+        updateDestination, // Added
         sortDestinationByProximity,
         sortDestinationByFastestRoute,
         updateDirection
