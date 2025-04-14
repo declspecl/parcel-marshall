@@ -26,3 +26,7 @@ export function getDirectionTo(self: Location, other: Location): Direction {
 
     return { degrees: 0 };
 }
+
+export function getFormattedLocation(self: Location): string {
+    return `${self.latitude.toFixed(5)}°N, ${self.longitude.toFixed(5)}°E`;
+}

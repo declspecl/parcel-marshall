@@ -39,6 +39,12 @@
                     "configureAndroidBackup": true,
                     "faceIDPermission": "Allow ParcelMarshall to access your Face ID biometric data."
                 }
+            ],
+            [
+                "expo-location",
+                {
+                    "locationAlwaysAndWhenInUsePermission": "Allow ParcelMarshall to use your location."
+                }
             ]
         ],
         "experiments": {

@@ -16,7 +16,7 @@ import { useEffect, useState } from "react";
 import { Text, View, StyleSheet, FlatList, Pressable, Modal, TextInput } from "react-native";
 import { Destination } from "@/model/Destination";
 import { getFastestRoute } from "@/model/Driver";
-import { getUniqueDestinationKey } from "@/model/Location";
+import { getFormattedLocation, getUniqueDestinationKey } from "@/model/Location";
 import { useDriver } from "@/store/DriverContext";
 import { DestinationCard } from "@/components/DestinationCard";
 import AddAddressButton from "@/components/AddAddressButton";
@@ -109,7 +109,7 @@ export default function Route() {
         <View style={styles.container}>
             <Text style={{ fontSize: 24, marginBottom: 20 }}>Route Page (a.k.a. The Drift Zone 🏎️💨)</Text>
             <Text style={styles.subtext}>"The only 'route' we follow is pure chaos 🧭🔥"</Text>
-            <Text style={styles.location}>You are here: ... XYZ address</Text>
+            <Text style={styles.location}>You are at: {getFormattedLocation(driver.currentLocation)}</Text>
             <Text style={styles.direction}>Traveling 🧭 N</Text>
             <UpdateButton onPress={handleUpdate} loading={isUpdating} />
             {showToast && (

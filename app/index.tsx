@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useDriver } from "@/store/DriverContext";
 import { Destination } from "@/model/Destination";
-import { getUniqueDestinationKey } from "@/model/Location";
+import { getFormattedLocation, getUniqueDestinationKey } from "@/model/Location";
 import { DestinationCard } from "@/components/DestinationCard";
 import { Text, View, StyleSheet, Pressable, FlatList, Modal, TextInput } from "react-native";
 import AddAddressButton from "@/components/AddAddressButton";
@@ -71,7 +71,7 @@ export default function Home() {
         <View style={styles.container}>
             <Text style={styles.title}>Home Page (but we’re never home) 🏡</Text>
             <Text style={styles.subtext}>The only ‘home’ we know is the next stop</Text>
-            <Text style={styles.location}>You are here: ... XYZ address</Text>
+            <Text style={styles.location}>You are at: {getFormattedLocation(driver.currentLocation)}</Text>
             <Text style={styles.direction}>Traveling 🧭 N</Text>
             <UpdateButton onPress={handleUpdate} loading={isUpdating} />
             {showToast && (

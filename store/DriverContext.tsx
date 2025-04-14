@@ -16,6 +16,7 @@ import { createContext, useContext, useEffect, useReducer } from "react";
 import { LayoutAnimation } from "react-native";
 import { PersistantStoreService } from "./PersistantStoreService";
 import { useNavigationState } from "@react-navigation/native"; // You had the wrong quotes in original
+import { LocationService } from "@/lib/LocationService";
 
 type DriverState = Driver;
 
@@ -203,6 +204,25 @@ function DriverCtxProvider({ children }: DriverCtxProviderProps) {
             console.error("Error saving destinations: ", err);
         });
     }, [driverState.destinations]);
+
+    useEffect(() => {
+        const locationService = new LocationService();
+        const getLocation = async () => {
+            const location = await locationService.getCurrentLocation();
+            if (location) {
+                driverDispatch({ type: DriverActionTypes.UPDATE_LOCATION, payload: location });
+            }
+        };
+
+        getLocation();
+        const interval = setInterval(() => {
+            getLocation();
+        }, 10000);
+
+        return () => {
+            clearInterval(interval);
+        };
+    });
 
     function updateLocation(location: Location) {
         driverDispatch({ type: DriverActionTypes.UPDATE_LOCATION, payload: location });
