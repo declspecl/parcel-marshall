@@ -53,7 +53,6 @@ export default function Home() {
 
         const [formatted_address, latLng] = res;
         if (driver.destinations.some((d) => d.latitude === latLng.lat() && d.longitude === latLng.lng())) {
-
             console.warn("Duplicate address detected — skipping");
             return;
         }
