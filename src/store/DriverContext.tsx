@@ -105,7 +105,6 @@ const driverStateReducer: DriverReducerType = (state, action) => {
         case DriverActionTypes.REMOVE_DESTINATION: {
             return removeDestination(state, action.payload);
         }
-        // Added Reducer Case
         case DriverActionTypes.UPDATE_DESTINATION: {
             return updateDestination(state, action.payload.originalDestination, action.payload.updatedData);
         }
@@ -135,7 +134,7 @@ function DriverCtxProvider({ children }: DriverCtxProviderProps) {
     const storeService = new PersistantStoreService();
 
     const [driverState, driverDispatch] = useReducer<DriverReducerType>(driverStateReducer, {
-        currentLocation: { latitude: 5, longitude: 5, address: null },
+        currentLocation: { latitude: 0, longitude: 0, address: null },
         destinations: storeService.getDestinations() ?? [
             {
                 latitude: 4.7,
@@ -221,7 +220,7 @@ function DriverCtxProvider({ children }: DriverCtxProviderProps) {
         const getLocation = async () => {
             const location = await locationService.getCurrentLocation();
             if (location) {
-                driverDispatch({ type: DriverActionTypes.UPDATE_LOCATION, payload: location });
+                updateLocation(location);
             }
         };
 
@@ -233,7 +232,7 @@ function DriverCtxProvider({ children }: DriverCtxProviderProps) {
         return () => {
             clearInterval(interval);
         };
-    });
+    }, []);
 
     function updateLocation(location: Location) {
         driverDispatch({ type: DriverActionTypes.UPDATE_LOCATION, payload: location });
