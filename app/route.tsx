@@ -23,6 +23,9 @@ import AddAddressButton from "@/components/AddAddressButton";
 import CompletionButton from "@/components/CompletionButton";
 import UpdateButton from "@/components/UpdateButton";
 
+//api call
+import { getGeocode } from "../API/GoogleMapsService";
+
 export default function Route() {
     const { driver, addDestination, removeDestination } = useDriver();
     //load driver data from global state once then set it to local state to avoid re-renders between pages
@@ -39,21 +42,32 @@ export default function Route() {
     const [isUpdating, setIsUpdating] = useState(false);
     const [showToast, setShowToast] = useState(false);
 
-    const handleAdd = () => {
+    //new add address
+    //moved old one to bottom of page for reference
+    const handleAdd = async () => {
         if (!address.trim()) return;
 
+        const res = await getGeocode(address);
+        if (!res) return;
+
+        const [formatted_address, latLng] = res;
+
         const newDestination: Destination = {
-            latitude: 5,
-            longitude: 56,
-            address,
-            travelDuration: 10,
+            latitude: latLng.lat,
+            longitude: latLng.lng,
+            address: formatted_address,
+            travelDuration: 10, // swap these two with the API call to get the duration and distance later
             travelDistance: 500,
             travelDirection: { degrees: 0 }
         };
 
-        addDestination(newDestination); // Updates global state
-        setVirtualRoute(getFastestRoute(driver.currentLocation, [...driver.destinations, newDestination])); // Update local route view
+        // Add to global state
+        addDestination(newDestination);
 
+        // Update local visual route
+        setVirtualRoute(getFastestRoute(driver.currentLocation, [...driver.destinations, newDestination]));
+
+        // Reset form
         setAddress("");
         setModalVisible(false);
     };
@@ -253,3 +267,25 @@ const styles = StyleSheet.create({
         textAlign: "center"
     }
 });
+
+/* Commenting out old code for adding destinations
+    //keep this for reference, but we will be using the Google Maps API to get the address and coordinates
+    const handleAdd = () => {
+        if (!address.trim()) return;
+
+        const newDestination: Destination = {
+            latitude: 5,
+            longitude: 56,
+            address,
+            travelDuration: 10,
+            travelDistance: 500,
+            travelDirection: { degrees: 0 }
+        };
+
+        addDestination(newDestination); // Updates global state
+        setVirtualRoute(getFastestRoute(driver.currentLocation, [...driver.destinations, newDestination])); // Update local route view
+
+        setAddress("");
+        setModalVisible(false);
+    };
+    */
