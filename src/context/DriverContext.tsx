@@ -15,6 +15,7 @@ export interface DriverContextType {
     sortDestinationByProximity: () => void;
     sortDestinationByFastestRoute: () => void;
     updateDirection: (direction: Direction) => void;
+    setDestinations: (destinations: Destination[]) => void;
 }
 
 export const DriverContext = createContext<DriverContextType | null>(null);
@@ -95,6 +96,9 @@ export function DriverCtxProvider({ children }: DriverCtxProviderProps) {
     function updateDirection(direction: Direction) {
         driverDispatch({ type: DriverActionTypes.UPDATE_DIRECTION, payload: direction });
     }
+    function setDestinations(destinations: Destination[]) {
+        driverDispatch({ type: DriverActionTypes.SET_DESTINATIONS, payload: destinations });
+    }
 
     const ctxValue: DriverContextType = {
         driver: driverState,
@@ -104,7 +108,8 @@ export function DriverCtxProvider({ children }: DriverCtxProviderProps) {
         updateDestination,
         sortDestinationByProximity,
         sortDestinationByFastestRoute,
-        updateDirection
+        updateDirection,
+        setDestinations
     };
 
     return <DriverContext.Provider value={ctxValue}>{children}</DriverContext.Provider>;
