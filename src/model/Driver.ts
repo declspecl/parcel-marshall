@@ -1,6 +1,6 @@
-import { getDistanceFrom, getUniqueDestinationKey, Location } from "./Location";
 import { Direction } from "./Direction";
 import { Destination } from "./Destination";
+import { getDistanceFrom, getUniqueDestinationKey, Location } from "./Location";
 
 export interface Driver {
     readonly currentLocation: Location;
@@ -53,19 +53,10 @@ export function updateDestination(
     return { ...self, destinations: finalDestinations };
 }
 
-//adding code for testing purposes -STIN
 export function sortDestinationsByProximity(self: Driver): Driver {
-    const newDestinations = [...self.destinations].sort(
-        (a, b) => a.travelDistance - b.travelDistance
-        // A is closer than B than result is negative -> A comes first
-        // A is further than B than result is positive -> B comes first
-        // A and B are equal than result is 0 -> no change in order
-    );
+    const newDestinations = [...self.destinations].sort((a, b) => a.travelDistance - b.travelDistance);
     return { ...self, destinations: newDestinations };
-    //will return a new driver object with the sorted destinations
 }
-
-//function to not affect global state
 
 export function getFastestRoute(currentLocation: Location, destinations: Destination[]): Destination[] {
     const remaining = [...destinations];

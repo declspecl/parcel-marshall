@@ -6,6 +6,7 @@ import { EditAddressModal } from "./EditAddressModal";
 import { getCompassDirection } from "@/model/Direction";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { getCompassDirectionAbbreviation } from "@/model/CompassDirection";
+import { Compass } from "./Compass";
 
 interface DestinationCardProps {
     readonly destination: Destination;
@@ -26,9 +27,15 @@ export function DestinationCard({ destination, isCurrent = false }: DestinationC
             <View style={[styles.card, isCurrent && styles.currentCard]}>
                 <View>
                     <Text>{destination.address}</Text>
-                    <Text>
-                        {destination.travelDistance}mi 🧭{" "}
-                        {getCompassDirectionAbbreviation(getCompassDirection(destination.travelDirection))}
+                    <Text style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        <Text>{destination.travelDistance}mi </Text>
+
+                        <Text>
+                            {destination.travelDirection.degrees}°
+                            {getCompassDirectionAbbreviation(getCompassDirection(destination.travelDirection))}
+                        </Text>
+
+                        <Compass destination={destination} />
                     </Text>
                 </View>
 
