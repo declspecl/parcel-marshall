@@ -39,3 +39,6 @@ app-example
 
 /coverage
 /.direnv
+
+#API KEY
+.env
