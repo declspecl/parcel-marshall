@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { useDriver } from "@/store/DriverContext";
+import { useDriver } from "@/hooks/useDriver";
 import { Destination } from "@/model/Destination";
-import { getFormattedLocation, getUniqueDestinationKey } from "@/model/Location";
-import { DestinationCard } from "@/components/DestinationCard";
-import { Text, View, StyleSheet, Pressable, FlatList, Modal, TextInput } from "react-native";
+import UpdateButton from "@/components/UpdateButton";
 import AddAddressButton from "@/components/AddAddressButton";
 import CompletionButton from "@/components/CompletionButton";
-import UpdateButton from "@/components/UpdateButton";
+import { DestinationCard } from "@/components/DestinationCard";
+import { getFormattedLocation, getUniqueDestinationKey } from "@/model/Location";
+import { Text, View, StyleSheet, Pressable, FlatList, Modal, TextInput } from "react-native";
 
 //calling api
 import { getGeocode } from "../lib/GoogleMapsService";
@@ -23,12 +23,7 @@ export default function Home() {
         removeDestination(destinations[0]);
     };
 
-    //setting the scaffolding for future Update button here
-    // There is current no google maps api logic so this will kinda work with that in the future
-
-    //controls the loading state of the update button
     const [isUpdating, setIsUpdating] = useState(false);
-    //controls the visibility of the rerouting toast
     const [showToast, setShowToast] = useState(false);
 
     //using antons code to sort the destinations by proximity to the driver

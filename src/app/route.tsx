@@ -1,30 +1,14 @@
-/**
- * Route Page (a.k.a. The Drift Zone 🚗💨)
- * This is where we send the boys (and the bugs).
- *
- * Features:
- * - Add destinations 🏁
- * - Delete them with extreme prejudice ❌
- * - Questionable compass direction logic 🧭
- *
- * Made with too much caffeine and not enough sleep.
- *
- *  we just vibe 😎
- */
-
-import { useEffect, useState } from "react";
-import { Text, View, StyleSheet, FlatList, Pressable, Modal, TextInput } from "react-native";
-import { Destination } from "@/model/Destination";
+import { useState } from "react";
+import { useDriver } from "@/hooks/useDriver";
 import { getFastestRoute } from "@/model/Driver";
-import { getFormattedLocation, getUniqueDestinationKey } from "@/model/Location";
-import { useDriver } from "@/store/DriverContext";
-import { DestinationCard } from "@/components/DestinationCard";
+import { Destination } from "@/model/Destination";
+import UpdateButton from "@/components/UpdateButton";
+import { getGeocode } from "@/lib/GoogleMapsService";
 import AddAddressButton from "@/components/AddAddressButton";
 import CompletionButton from "@/components/CompletionButton";
-import UpdateButton from "@/components/UpdateButton";
-
-//api call
-import { getGeocode } from "../lib/GoogleMapsService";
+import { DestinationCard } from "@/components/DestinationCard";
+import { getFormattedLocation, getUniqueDestinationKey } from "@/model/Location";
+import { Text, View, StyleSheet, FlatList, Pressable, Modal, TextInput } from "react-native";
 
 export default function Route() {
     const { driver, addDestination, removeDestination } = useDriver();

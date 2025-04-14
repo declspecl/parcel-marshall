@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { Destination } from "@/model/Destination";
-import { useDriver } from "@/store/DriverContext";
+import { useDriver } from "@/hooks/useDriver";
 import { EditAddressModal } from "./EditAddressModal";
 import { getCompassDirection } from "@/model/Direction";
 import { Pressable, StyleSheet, Text, View } from "react-native";

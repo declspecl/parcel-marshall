@@ -1,6 +1,6 @@
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { DriverCtxProvider } from "@/store/DriverContext";
+import { DriverCtxProvider } from "@/context/DriverContext";
 import { useState } from "react";
 import SplashScreen from "@/components/SplashScreen";
 import { RouteLabel, RouteName } from "@/lib/Routes";
