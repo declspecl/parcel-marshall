@@ -6,6 +6,7 @@ import { Driver, Location, Destination, Direction } from "@/model";
 import { PersistantStoreService } from "@/store/PersistantStoreService";
 import { DriverActionTypes, DriverReducerType, driverStateReducer } from "@/state/DriverStateReducer";
 import { getGeocode } from "@/lib/GoogleMapsService";
+import { Duration, emptyDuration } from "@/model/Duration";
 
 export interface DriverContextType {
     driver: Driver;
@@ -153,7 +154,7 @@ const defaultDestinations: Destination[] = [
         latitude: 42.6377478,
         longitude: -83.2199907,
         address: "202 N Squirrel Rd, Auburn Hills, MI 48326, USA",
-        travelDuration: 0,
+        travelDuration: emptyDuration,
         travelDistance: 0,
         travelDirection: { degrees: 0 }
     },
@@ -161,7 +162,7 @@ const defaultDestinations: Destination[] = [
         address: "4170 Pontiac Lake Rd, Waterford Twp, MI 48328, USA",
         latitude: 42.6552567,
         longitude: -83.3695752,
-        travelDuration: 0,
+        travelDuration: emptyDuration,
         travelDistance: 0,
         travelDirection: { degrees: 0 }
     },
@@ -169,7 +170,7 @@ const defaultDestinations: Destination[] = [
         address: "2645 Woodward Ave, Detroit, MI 48201, USA",
         latitude: 42.3415519,
         longitude: -83.0543162,
-        travelDuration: 0,
+        travelDuration: emptyDuration,
         travelDistance: 0,
         travelDirection: { degrees: 0 }
     },
@@ -177,7 +178,7 @@ const defaultDestinations: Destination[] = [
         address: "150 W Jefferson Ave, Detroit, MI 48226, USA",
         latitude: 42.32824919999999,
         longitude: -83.04648279999999,
-        travelDuration: 0,
+        travelDuration: emptyDuration,
         travelDistance: 0,
         travelDirection: { degrees: 0 }
     }

@@ -10,6 +10,7 @@ import { Text, View, StyleSheet, Pressable, FlatList, Modal, TextInput } from "r
 import { updateDestinations } from "@/lib/GoogleMapsService";
 
 import { getGeocode } from "../lib/GoogleMapsService";
+import { emptyDuration } from "@/model/Duration";
 
 export default function Home() {
     const { driver, addDestination, removeDestination, setDestinations } = useDriver();
@@ -61,7 +62,7 @@ export default function Home() {
             latitude: latLng.lat(),
             longitude: latLng.lng(),
             address: formatted_address,
-            travelDuration: 10,
+            travelDuration: emptyDuration,
             travelDistance: 500,
             travelDirection: { degrees: 0 }
         };
