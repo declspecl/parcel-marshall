@@ -9,6 +9,7 @@ import CompletionButton from "@/components/CompletionButton";
 import { DestinationCard } from "@/components/DestinationCard";
 import { getFormattedLocation, getUniqueDestinationKey } from "@/model/Location";
 import { Text, View, StyleSheet, FlatList, Pressable, Modal, TextInput } from "react-native";
+import { emptyDuration } from "@/model/Duration";
 
 export default function Route() {
     const { driver, addDestination, removeDestination, setDestinations } = useDriver();
@@ -33,7 +34,7 @@ export default function Route() {
             latitude: latLng.lat(),
             longitude: latLng.lng(),
             address: formatted_address,
-            travelDuration: 10, // swap these two with the API call to get the duration and distance later
+            travelDuration: emptyDuration, // swap these two with the API call to get the duration and distance later
             travelDistance: 500,
             travelDirection: { degrees: 0 }
         };

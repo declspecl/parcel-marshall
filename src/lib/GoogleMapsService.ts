@@ -1,6 +1,7 @@
 import { Location } from "@/model/Location";
 import { Destination } from "@/model/Destination";
 import { Loader } from "@googlemaps/js-api-loader";
+import { secondsToDuration } from "@/model/Duration";
 
 const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY;
 if (!GOOGLE_MAPS_API_KEY) {
@@ -63,7 +64,7 @@ export async function updateDestinations(currLocation: Location, destinations: L
         address: matrix.destinationAddresses[index],
         latitude: dest.latitude,
         longitude: dest.longitude,
-        travelDuration: parseFloat(metresToMiles(elements[index].duration.value).toFixed(1)),
+        travelDuration: secondsToDuration(elements[index].duration.value),
         travelDistance: parseFloat(metresToMiles(elements[index].distance.value).toFixed(1)),
         travelDirection: { degrees: 0 }
     }));

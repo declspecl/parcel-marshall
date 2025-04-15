@@ -8,6 +8,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { getCompassDirectionAbbreviation } from "@/model/CompassDirection";
 import { Compass } from "./Compass";
 import { getGeocode } from "../lib/GoogleMapsService";
+import { emptyDuration } from "@/model/Duration";
 
 interface DestinationCardProps {
     readonly destination: Destination;
@@ -34,7 +35,7 @@ export function DestinationCard({ destination, isCurrent = false }: DestinationC
             latitude: latLng.lat(),
             longitude: latLng.lng(),
             address: formatted_address,
-            travelDuration: 0,
+            travelDuration: emptyDuration,
             travelDistance: 0,
             travelDirection: { degrees: 0 }
         };
