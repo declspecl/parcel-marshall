@@ -1,11 +1,11 @@
 import { Platform } from "react-native";
-import { Destination } from "@/model/Destination";
 import * as SecureStore from "expo-secure-store";
+import { Destination, EmptyDestination } from "@/model/Destination";
 
 const isWeb = Platform.OS === "web";
 
 export class PersistantStoreService {
-    getDestinations(): Destination[] | null {
+    getDestinations(): EmptyDestination[] | null {
         const destinations = isWeb ? localStorage.getItem("destinations") : SecureStore.getItem("destinations");
 
         if (!destinations) {
@@ -15,7 +15,7 @@ export class PersistantStoreService {
         return JSON.parse(destinations);
     }
 
-    async getDestinationsAsync(): Promise<Destination[] | null> {
+    async getDestinationsAsync(): Promise<EmptyDestination[] | null> {
         const destinations = isWeb
             ? localStorage.getItem("destinations")
             : await SecureStore.getItemAsync("destinations");
@@ -28,18 +28,30 @@ export class PersistantStoreService {
     }
 
     setDestinations(destinations: Destination[]): void {
+        const emptyDestinations: EmptyDestination[] = destinations.map((destination) => ({
+            address: destination.address,
+            latitude: destination.latitude,
+            longitude: destination.longitude
+        }));
+
         if (isWeb) {
-            localStorage.setItem("destinations", JSON.stringify(destinations));
+            localStorage.setItem("destinations", JSON.stringify(emptyDestinations));
         } else {
-            SecureStore.setItem("destinations", JSON.stringify(destinations));
+            SecureStore.setItem("destinations", JSON.stringify(emptyDestinations));
         }
     }
 
-    async setDestinationsAsync(destinations: Destination[]): Promise<void> {
+    async setDestinationsAsync(destinations: EmptyDestination[]): Promise<void> {
+        const emptyDestinations: EmptyDestination[] = destinations.map((destination) => ({
+            address: destination.address,
+            latitude: destination.latitude,
+            longitude: destination.longitude
+        }));
+
         if (isWeb) {
-            localStorage.setItem("destinations", JSON.stringify(destinations));
+            localStorage.setItem("destinations", JSON.stringify(emptyDestinations));
         } else {
-            await SecureStore.setItemAsync("destinations", JSON.stringify(destinations));
+            await SecureStore.setItemAsync("destinations", JSON.stringify(emptyDestinations));
         }
     }
 }

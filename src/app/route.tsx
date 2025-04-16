@@ -8,9 +8,11 @@ import { DestinationCard } from "@/components/DestinationCard";
 import { getFormattedLocation, getUniqueDestinationKey } from "@/model/Location";
 import { Text, View, StyleSheet, FlatList, Pressable, Modal, TextInput } from "react-native";
 import { Destination, getFastestRoute, sortDestinationsByFastestRoute, updateDestinationAddress } from "@/model";
+import { useLocationPolling } from "@/hooks/useLocationPolling";
 
 export default function Route() {
     const { driver, addDestination, removeDestination, setDestinations } = useDriver();
+    const { pollNow } = useLocationPolling();
     const destinations = driver.destinations;
 
     const [modalVisible, setModalVisible] = useState(false);
@@ -41,20 +43,8 @@ export default function Route() {
         setIsUpdating(true);
         setShowToast(true);
 
-        console.log("🔄 Refreshing route (by fastest time)...");
-        console.log("🔄 Refreshing route from:", driver.currentLocation);
-        console.log(
-            "➡️ Before sort:",
-            driver.destinations.map((d) => d.address)
-        );
-        const newDestinations = await updateDestinations(driver.currentLocation, driver.destinations);
-        const sorted = getFastestRoute(driver.currentLocation, newDestinations);
-        setDestinations(sorted);
-        sortDestinationsByFastestRoute(driver);
-        console.log(
-            "✅ After sort:",
-            sorted.map((d) => d.address)
-        );
+        pollNow();
+
         setTimeout(() => {
             setIsUpdating(false);
             setShowToast(false);

@@ -5,11 +5,14 @@ import AddAddressButton from "@/components/AddAddressButton";
 import CompletionButton from "@/components/CompletionButton";
 import { updateDestinations } from "@/lib/GoogleMapsService";
 import { DestinationCard } from "@/components/DestinationCard";
+import { useLocationPolling } from "@/hooks/useLocationPolling";
 import { getFormattedLocation, getUniqueDestinationKey } from "@/model/Location";
 import { Text, View, StyleSheet, Pressable, FlatList, Modal, TextInput } from "react-native";
 
 export default function Home() {
     const { driver, addDestination, removeDestination, setDestinations } = useDriver();
+    const { pollNow } = useLocationPolling();
+
     const destinations = driver.destinations;
 
     const [modalVisible, setModalVisible] = useState(false);
@@ -32,9 +35,8 @@ export default function Home() {
         setIsUpdating(true);
         setShowToast(true);
         console.log("Refreshing route...");
-        const updatedDestinations = await updateDestinations(driver.currentLocation, driver.destinations);
-        setDestinations(updatedDestinations);
-        sortDestinationByProximity();
+        pollNow();
+
         setTimeout(() => {
             setIsUpdating(false);
             setShowToast(false);

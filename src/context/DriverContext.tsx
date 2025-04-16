@@ -1,10 +1,9 @@
 import { RouteName } from "@/lib/Routes";
-import { getGeocode, updateDestinations } from "@/lib/GoogleMapsService";
-import { LocationService } from "@/lib/LocationService";
+import { getGeocode } from "@/lib/GoogleMapsService";
 import { createContext, useEffect, useReducer } from "react";
 import { useNavigationState } from "@react-navigation/native";
 import { PersistantStoreService } from "@/store/PersistantStoreService";
-import { Driver, Location, Destination, Direction, EmptyDestination } from "@/model";
+import { Driver, Location, Destination, Direction, EmptyDestination, TravelData } from "@/model";
 import { DriverActionTypes, DriverReducerType, driverStateReducer } from "@/state/DriverStateReducer";
 
 export interface DriverContextType {
@@ -17,6 +16,7 @@ export interface DriverContextType {
     sortDestinationByFastestRoute: () => void;
     updateDirection: (direction: Direction) => void;
     setDestinations: (destinations: Destination[]) => void;
+    setTravelData: (address: string, travelData: TravelData) => void;
 }
 
 export const DriverContext = createContext<DriverContextType | null>(null);
@@ -27,53 +27,20 @@ interface DriverCtxProviderProps {
 
 export function DriverCtxProvider({ children }: DriverCtxProviderProps) {
     const storeService = new PersistantStoreService();
-    const routeName = useNavigationState((state) => state.routes[state.index]?.name);
 
     const [driverState, driverDispatch] = useReducer<DriverReducerType>(driverStateReducer, {
-        currentLocation: { latitude: 42.67116, longitude: -83.21659, address: null },
-        destinations: storeService.getDestinations() ?? defaultDestinations,
+        currentLocation: { latitude: 0, longitude: 0, address: null },
+        destinations:
+            storeService.getDestinations()?.map((destination) => ({ ...destination, type: "empty" })) ??
+            defaultDestinations,
         direction: { degrees: 50 }
     });
-
-    useEffect(() => {
-        switch (routeName) {
-            case RouteName.Index:
-                break;
-            case RouteName.Route:
-                break;
-            case RouteName.Settings:
-                break;
-            default:
-                console.log(`DriverCtxProvider: Unknown route name: ${routeName}`);
-        }
-    }, [routeName]);
 
     useEffect(() => {
         storeService.setDestinationsAsync(driverState.destinations).catch((err) => {
             console.error("Error saving destinations: ", err);
         });
     }, [driverState.destinations]);
-
-    useEffect(() => {
-        const locationService = new LocationService();
-        const pollLocations = async () => {
-            const location = await locationService.getCurrentLocation();
-            if (location) {
-                updateLocation(location);
-                // broken because not including driverState in the dependencies list
-                // setDestinations(await updateDestinations(driverState.currentLocation, driverState.destinations));
-            }
-        };
-
-        pollLocations();
-        const interval = setInterval(() => {
-            pollLocations();
-        }, 10000);
-
-        return () => {
-            clearInterval(interval);
-        };
-    }, []);
 
     function updateLocation(location: Location) {
         driverDispatch({ type: DriverActionTypes.UPDATE_LOCATION, payload: location });
@@ -122,6 +89,9 @@ export function DriverCtxProvider({ children }: DriverCtxProviderProps) {
     function setDestinations(destinations: Destination[]) {
         driverDispatch({ type: DriverActionTypes.SET_DESTINATIONS, payload: destinations });
     }
+    function setTravelData(address: string, travelData: TravelData) {
+        driverDispatch({ type: DriverActionTypes.SET_TRAVEL_DATA, payload: { address, travelData } });
+    }
 
     const ctxValue: DriverContextType = {
         driver: driverState,
@@ -132,7 +102,8 @@ export function DriverCtxProvider({ children }: DriverCtxProviderProps) {
         sortDestinationByProximity,
         sortDestinationByFastestRoute,
         updateDirection,
-        setDestinations
+        setDestinations,
+        setTravelData
     };
 
     return <DriverContext.Provider value={ctxValue}>{children}</DriverContext.Provider>;
