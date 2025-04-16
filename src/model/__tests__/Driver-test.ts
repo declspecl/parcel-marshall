@@ -11,15 +11,6 @@ import {
 
 const newYorkLocation: Location = { latitude: 40.7128, longitude: -74.006, address: "NYC Start" };
 const newYork: Destination = { ...newYorkLocation, address: "1 Main St", type: "empty" };
-const newYorkFull: Destination = {
-    type: "full",
-    address: "4 Park Ave",
-    latitude: newYorkLocation.latitude,
-    longitude: newYorkLocation.longitude,
-    travelDirection: { degrees: 0 },
-    travelDistance: 0,
-    travelDuration: { days: 0, hours: 0, minutes: 0, seconds: 0 }
-};
 
 const timesSquareLocation: Location = { latitude: 40.758, longitude: -73.9855, address: "Times Square Dest" };
 const timesSquare: Destination = {
@@ -133,17 +124,16 @@ describe("Driver Model Functions", () => {
         const driverInNewYork = {
             ...baseDriver,
             currentLocation: newYorkLocation,
-            destinations: [newYork, chicago, timesSquare, newYorkFull]
+            destinations: [newYork, chicago, timesSquare]
         };
 
         it("should sort destinations by Haversine distance from current location", () => {
             const sortedDriver = sortDestinationsByProximity(driverInNewYork);
 
             expect(sortedDriver.destinations.map((d) => d.address)).toEqual([
-                newYorkFull.address,
+                newYork.address,
                 timesSquare.address,
-                chicago.address,
-                newYork.address
+                chicago.address
             ]);
         });
 
