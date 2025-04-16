@@ -1,15 +1,13 @@
 import { useState } from "react";
 import { useDriver } from "@/hooks/useDriver";
-import { getFastestRoute, sortDestinationsByFastestRoute, updateDestination } from "@/model/Driver";
-import { Destination } from "@/model/Destination";
 import UpdateButton from "@/components/UpdateButton";
-import { getGeocode, updateDestinations } from "@/lib/GoogleMapsService";
+import { updateDestinations } from "@/lib/GoogleMapsService";
 import AddAddressButton from "@/components/AddAddressButton";
 import CompletionButton from "@/components/CompletionButton";
 import { DestinationCard } from "@/components/DestinationCard";
 import { getFormattedLocation, getUniqueDestinationKey } from "@/model/Location";
 import { Text, View, StyleSheet, FlatList, Pressable, Modal, TextInput } from "react-native";
-import { emptyDuration } from "@/model/Duration";
+import { Destination, getFastestRoute, sortDestinationsByFastestRoute, updateDestinationAddress } from "@/model";
 
 export default function Route() {
     const { driver, addDestination, removeDestination, setDestinations } = useDriver();
@@ -20,36 +18,16 @@ export default function Route() {
     const [isUpdating, setIsUpdating] = useState(false);
     const [showToast, setShowToast] = useState(false);
 
-    //new add address
-    //moved old one to bottom of page for reference
     const handleAdd = async () => {
         if (!address.trim()) return;
 
-        const res = await getGeocode(address);
-        if (!res) return;
-
-        const [formatted_address, latLng] = res;
-
-        const newDestination: Destination = {
-            latitude: latLng.lat(),
-            longitude: latLng.lng(),
-            address: formatted_address,
-            travelDuration: emptyDuration, // swap these two with the API call to get the duration and distance later
-            travelDistance: 500,
-            travelDirection: { degrees: 0 }
-        };
-
-        // Add to global state
-        // Update local visual route
-        addDestination(newDestination);
-
-        // Reset form
+        addDestination(address.trim());
         setAddress("");
         setModalVisible(false);
     };
 
     const handleRemove = (destination: Destination) => {
-        removeDestination(destination);
+        removeDestination(destination.address);
     };
 
     const handleUpdate = async () => {
@@ -81,7 +59,7 @@ export default function Route() {
     const handleComplete = () => {
         const toRemove = destinations[0];
 
-        removeDestination(toRemove);
+        removeDestination(toRemove.address);
     };
 
     //will update title and text to be more relevant to the app

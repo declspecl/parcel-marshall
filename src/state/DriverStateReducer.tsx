@@ -1,24 +1,24 @@
-import { Direction, Destination, Location } from "@/model";
+import { Direction, Destination, Location, EmptyDestination } from "@/model";
 import {
     addDestination,
     Driver,
     removeDestination,
     sortDestinationsByFastestRoute,
     sortDestinationsByProximity,
-    updateDestination,
+    updateDestinationAddress,
     updateDirection,
     updateLocation
 } from "@/model/Driver";
 
 export enum DriverActionTypes {
-    UPDATE_LOCATION = "UPDATE_LOCATION",
-    ADD_DESTINATION = "ADD_DESTINATION",
-    REMOVE_DESTINATION = "REMOVE_DESTINATION",
-    UPDATE_DESTINATION = "UPDATE_DESTINATION",
-    SORT_DEST_BY_PROXIMITY = "SORT_DEST_BY_PROXIMITY",
-    SORT_DEST_BY_FASTEST_ROUTE = "SORT_DEST_BY_FASTEST_ROUTE",
-    UPDATE_DIRECTION = "UPDATE_DIRECTION",
-    SET_DESTINATIONS = "SET_DESTINATIONS"
+    UPDATE_LOCATION,
+    ADD_DESTINATION,
+    REMOVE_DESTINATION,
+    UPDATE_DESTINATION,
+    SORT_DEST_BY_PROXIMITY,
+    SORT_DEST_BY_FASTEST_ROUTE,
+    UPDATE_DIRECTION_ADDRESS,
+    SET_DESTINATIONS
 }
 
 type UpdateLocationAction = {
@@ -28,19 +28,21 @@ type UpdateLocationAction = {
 
 type AddDestinationAction = {
     type: DriverActionTypes.ADD_DESTINATION;
-    payload: Destination;
+    payload: EmptyDestination;
 };
 
 type RemoveDestinationAction = {
     type: DriverActionTypes.REMOVE_DESTINATION;
-    payload: Destination;
+    payload: {
+        address: string;
+    };
 };
 
-type UpdateDestinationAction = {
+type UpdateDestinationAddressAction = {
     type: DriverActionTypes.UPDATE_DESTINATION;
     payload: {
-        originalDestination: Destination;
-        updatedData: Partial<Destination>;
+        oldAddress: string;
+        updatedData: EmptyDestination;
     };
 };
 
@@ -53,7 +55,7 @@ type SortDestinationByFastestRouteAction = {
 };
 
 type UpdateDirectionAction = {
-    type: DriverActionTypes.UPDATE_DIRECTION;
+    type: DriverActionTypes.UPDATE_DIRECTION_ADDRESS;
     payload: Direction;
 };
 
@@ -66,7 +68,7 @@ type DriverStateAction =
     | UpdateLocationAction
     | AddDestinationAction
     | RemoveDestinationAction
-    | UpdateDestinationAction
+    | UpdateDestinationAddressAction
     | SortDestinationByProximityAction
     | SortDestinationByFastestRouteAction
     | UpdateDirectionAction
@@ -79,13 +81,16 @@ export const driverStateReducer: DriverReducerType = (state, action) => {
             return updateLocation(state, action.payload);
         }
         case DriverActionTypes.ADD_DESTINATION: {
-            return addDestination(state, action.payload);
+            return addDestination(state, { ...action.payload, type: "empty" });
         }
         case DriverActionTypes.REMOVE_DESTINATION: {
-            return removeDestination(state, action.payload);
+            return removeDestination(state, action.payload.address);
         }
         case DriverActionTypes.UPDATE_DESTINATION: {
-            return updateDestination(state, action.payload.originalDestination, action.payload.updatedData);
+            return updateDestinationAddress(state, action.payload.oldAddress, {
+                ...action.payload.updatedData,
+                type: "empty"
+            });
         }
         case DriverActionTypes.SORT_DEST_BY_PROXIMITY: {
             return sortDestinationsByProximity(state);
@@ -93,7 +98,7 @@ export const driverStateReducer: DriverReducerType = (state, action) => {
         case DriverActionTypes.SORT_DEST_BY_FASTEST_ROUTE: {
             return sortDestinationsByFastestRoute(state);
         }
-        case DriverActionTypes.UPDATE_DIRECTION: {
+        case DriverActionTypes.UPDATE_DIRECTION_ADDRESS: {
             return updateDirection(state, action.payload);
         }
         case DriverActionTypes.SET_DESTINATIONS: {

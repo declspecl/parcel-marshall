@@ -21,7 +21,7 @@ export default function Home() {
 
     const handleComplete = () => {
         if (destinations.length === 0) return;
-        removeDestination(destinations[0]);
+        removeDestination(destinations[0].address);
     };
 
     const [isUpdating, setIsUpdating] = useState(false);
@@ -49,25 +49,12 @@ export default function Home() {
     const handleAdd = async () => {
         if (!address.trim()) return;
 
-        const res = await getGeocode(address);
-        if (!res) return;
-
-        const [formatted_address, latLng] = res;
-        if (driver.destinations.some((d) => d.latitude === latLng.lat() && d.longitude === latLng.lng())) {
+        try {
+            addDestination(address.trim());
+        } catch (error) {
             console.warn("Duplicate address detected — skipping");
-            return;
         }
 
-        const newDestination: Destination = {
-            latitude: latLng.lat(),
-            longitude: latLng.lng(),
-            address: formatted_address,
-            travelDuration: emptyDuration,
-            travelDistance: 500,
-            travelDirection: { degrees: 0 }
-        };
-
-        addDestination(newDestination);
         setAddress("");
         setModalVisible(false);
     };

@@ -1,14 +1,10 @@
+import { Compass } from "./Compass";
 import React, { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { Destination } from "@/model/Destination";
 import { useDriver } from "@/hooks/useDriver";
 import { EditAddressModal } from "./EditAddressModal";
-import { getCompassDirection } from "@/model/Direction";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { getCompassDirectionAbbreviation } from "@/model/CompassDirection";
-import { Compass } from "./Compass";
-import { getGeocode } from "../lib/GoogleMapsService";
-import { emptyDuration } from "@/model/Duration";
+import { Destination, getCompassDirection, getCompassDirectionAbbreviation } from "@/model";
 
 interface DestinationCardProps {
     readonly destination: Destination;
@@ -16,32 +12,14 @@ interface DestinationCardProps {
 }
 
 export function DestinationCard({ destination, isCurrent = false }: DestinationCardProps) {
-    const { driver, removeDestination, updateDestination } = useDriver();
+    const { driver, removeDestination, updateDestinationAddress } = useDriver();
     const [isModalVisible, setIsModalVisible] = useState(false);
 
     const handleSaveAddress = async (newAddress: string) => {
         if (!newAddress.trim()) return;
 
-        const res = await getGeocode(newAddress);
-        if (!res) return;
-
-        const [formatted_address, latLng] = res;
-        if (driver.destinations.some((d) => d.latitude === latLng.lat() && d.longitude === latLng.lng())) {
-            console.warn("Duplicate address detected — skipping");
-            return;
-        }
-
-        const newDestination: Destination = {
-            latitude: latLng.lat(),
-            longitude: latLng.lng(),
-            address: formatted_address,
-            travelDuration: emptyDuration,
-            travelDistance: 0,
-            travelDirection: { degrees: 0 }
-        };
-
         setIsModalVisible(false);
-        updateDestination(destination, newDestination);
+        updateDestinationAddress(destination.address, newAddress);
     };
 
     return (
@@ -49,16 +27,20 @@ export function DestinationCard({ destination, isCurrent = false }: DestinationC
             <View style={[styles.card, isCurrent && styles.currentCard]}>
                 <View>
                     <Text style={{ textOverflow: "clip" }}>{destination.address.substring(0, 35)}</Text>
-                    <Text style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                        <Text>{destination.travelDistance}mi </Text>
+                    {destination.type === "full" ? (
+                        <Text style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                            <Text>{destination.travelDistance}mi </Text>
 
-                        <Text>
-                            {destination.travelDirection.degrees}°
-                            {getCompassDirectionAbbreviation(getCompassDirection(destination.travelDirection))}
+                            <Text>
+                                {destination.travelDirection.degrees}°
+                                {getCompassDirectionAbbreviation(getCompassDirection(destination.travelDirection))}
+                            </Text>
+
+                            <Compass destination={destination} />
                         </Text>
-
-                        <Compass destination={destination} />
-                    </Text>
+                    ) : (
+                        <Text>Loading...</Text>
+                    )}
                 </View>
 
                 <View style={styles.buttonsContainer}>
@@ -67,7 +49,7 @@ export function DestinationCard({ destination, isCurrent = false }: DestinationC
                             <Ionicons name="pencil" size={16} color="black" />
                         </Text>
                     </Pressable>
-                    <Pressable style={styles.removeBtn} onPress={() => removeDestination(destination)}>
+                    <Pressable style={styles.removeBtn} onPress={() => removeDestination(destination.address)}>
                         <Text>
                             <Ionicons name="trash" size={16} color="black" />
                         </Text>

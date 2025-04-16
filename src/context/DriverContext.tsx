@@ -1,22 +1,18 @@
 import { RouteName } from "@/lib/Routes";
+import { getGeocode } from "@/lib/GoogleMapsService";
 import { LocationService } from "@/lib/LocationService";
 import { createContext, useEffect, useReducer } from "react";
 import { useNavigationState } from "@react-navigation/native";
-import { Driver, Location, Destination, Direction } from "@/model";
 import { PersistantStoreService } from "@/store/PersistantStoreService";
+import { Driver, Location, Destination, Direction, EmptyDestination } from "@/model";
 import { DriverActionTypes, DriverReducerType, driverStateReducer } from "@/state/DriverStateReducer";
-import { getGeocode } from "@/lib/GoogleMapsService";
-import { Duration, emptyDuration } from "@/model/Duration";
 
 export interface DriverContextType {
     driver: Driver;
     updateLocation: (location: Location) => void;
-    addDestination: (destination: Destination) => void;
-    removeDestination: (destination: Destination) => void;
-    updateDestination: (
-        originalDestination: Destination,
-        updatedData: Omit<Destination, "latitude" | "longitude"> & Partial<Destination>
-    ) => void;
+    addDestination: (address: string) => Promise<void>;
+    removeDestination: (address: string) => void;
+    updateDestinationAddress: (oldAddress: string, newAddress: string) => void;
     sortDestinationByProximity: () => void;
     sortDestinationByFastestRoute: () => void;
     updateDirection: (direction: Direction) => void;
@@ -80,45 +76,36 @@ export function DriverCtxProvider({ children }: DriverCtxProviderProps) {
     function updateLocation(location: Location) {
         driverDispatch({ type: DriverActionTypes.UPDATE_LOCATION, payload: location });
     }
-    function addDestination(destination: Omit<Destination, "latitude" | "longitude"> & Partial<Destination>) {
-        getGeocode(destination.address!).then((res) => {
-            if (!res) return;
+    async function addDestination(address: string) {
+        const geocode = await getGeocode(address);
+        if (!geocode) throw new Error("Failed to fetch geocode");
 
-            const [formatted_address, latLng] = res;
+        const [formattedAddress, latLong] = geocode;
+        const destination: EmptyDestination = {
+            latitude: latLong.lat(),
+            longitude: latLong.lng(),
+            address: formattedAddress
+        };
 
-            const newDestination: Destination = {
-                ...destination,
-                latitude: latLng.lat(),
-                longitude: latLng.lng(),
-                address: formatted_address
-            };
-
-            driverDispatch({ type: DriverActionTypes.ADD_DESTINATION, payload: newDestination });
-        });
+        driverDispatch({ type: DriverActionTypes.ADD_DESTINATION, payload: destination });
     }
-    function removeDestination(destination: Destination) {
-        driverDispatch({ type: DriverActionTypes.REMOVE_DESTINATION, payload: destination });
+    function removeDestination(address: string) {
+        driverDispatch({ type: DriverActionTypes.REMOVE_DESTINATION, payload: { address } });
     }
-    function updateDestination(
-        originalDestination: Destination,
-        updatedData: Omit<Destination, "latitude" | "longitude"> & Partial<Destination>
-    ) {
-        getGeocode(updatedData.address!).then((res) => {
-            if (!res) return;
+    async function updateDestinationAddress(oldAddress: string, newAddress: string) {
+        const geocode = await getGeocode(newAddress);
+        if (!geocode) throw new Error("Failed to fetch geocode");
 
-            const [formatted_address, latLng] = res;
+        const [formattedAddress, latLong] = geocode;
+        const destination: EmptyDestination = {
+            latitude: latLong.lat(),
+            longitude: latLong.lng(),
+            address: formattedAddress
+        };
 
-            const newDestination: Destination = {
-                ...updatedData,
-                latitude: latLng.lat(),
-                longitude: latLng.lng(),
-                address: formatted_address
-            };
-
-            driverDispatch({
-                type: DriverActionTypes.UPDATE_DESTINATION,
-                payload: { originalDestination, updatedData }
-            });
+        driverDispatch({
+            type: DriverActionTypes.UPDATE_DESTINATION,
+            payload: { oldAddress, updatedData: destination }
         });
     }
     function sortDestinationByProximity() {
@@ -128,7 +115,7 @@ export function DriverCtxProvider({ children }: DriverCtxProviderProps) {
         driverDispatch({ type: DriverActionTypes.SORT_DEST_BY_FASTEST_ROUTE });
     }
     function updateDirection(direction: Direction) {
-        driverDispatch({ type: DriverActionTypes.UPDATE_DIRECTION, payload: direction });
+        driverDispatch({ type: DriverActionTypes.UPDATE_DIRECTION_ADDRESS, payload: direction });
     }
     function setDestinations(destinations: Destination[]) {
         driverDispatch({ type: DriverActionTypes.SET_DESTINATIONS, payload: destinations });
@@ -139,7 +126,7 @@ export function DriverCtxProvider({ children }: DriverCtxProviderProps) {
         updateLocation,
         addDestination,
         removeDestination,
-        updateDestination,
+        updateDestinationAddress,
         sortDestinationByProximity,
         sortDestinationByFastestRoute,
         updateDirection,
@@ -151,35 +138,27 @@ export function DriverCtxProvider({ children }: DriverCtxProviderProps) {
 
 const defaultDestinations: Destination[] = [
     {
+        type: "empty",
         latitude: 42.6377478,
         longitude: -83.2199907,
-        address: "202 N Squirrel Rd, Auburn Hills, MI 48326, USA",
-        travelDuration: emptyDuration,
-        travelDistance: 0,
-        travelDirection: { degrees: 0 }
+        address: "202 N Squirrel Rd, Auburn Hills, MI 48326, USA"
     },
     {
+        type: "empty",
         address: "4170 Pontiac Lake Rd, Waterford Twp, MI 48328, USA",
         latitude: 42.6552567,
-        longitude: -83.3695752,
-        travelDuration: emptyDuration,
-        travelDistance: 0,
-        travelDirection: { degrees: 0 }
+        longitude: -83.3695752
     },
     {
+        type: "empty",
         address: "2645 Woodward Ave, Detroit, MI 48201, USA",
         latitude: 42.3415519,
-        longitude: -83.0543162,
-        travelDuration: emptyDuration,
-        travelDistance: 0,
-        travelDirection: { degrees: 0 }
+        longitude: -83.0543162
     },
     {
+        type: "empty",
         address: "150 W Jefferson Ave, Detroit, MI 48226, USA",
         latitude: 42.32824919999999,
-        longitude: -83.04648279999999,
-        travelDuration: emptyDuration,
-        travelDistance: 0,
-        travelDirection: { degrees: 0 }
+        longitude: -83.04648279999999
     }
 ];

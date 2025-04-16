@@ -1,6 +1,6 @@
 import { Direction } from "./Direction";
 import { Destination } from "./Destination";
-import { getHaversineDistance, getUniqueDestinationKey, Location } from "./Location";
+import { getHaversineDistance, Location } from "./Location";
 
 export interface Driver {
     readonly currentLocation: Location;
@@ -17,44 +17,47 @@ export function addDestination(self: Driver, destination: Destination): Driver {
     return { ...self, destinations: newDestinations };
 }
 
-export function removeDestination(self: Driver, destination: Destination): Driver {
-    const newDestinations = [...self.destinations];
-    const index = newDestinations.indexOf(destination);
-    if (index > -1) {
-        // Only splice if found
-        newDestinations.splice(index, 1);
-    } else {
-        console.warn("removeDestination: Destination not found.");
+export function removeDestination(self: Driver, destinationAddress: string): Driver {
+    const destinationToRemove = self.destinations.find((destination) => destination.address === destinationAddress);
+    if (!destinationToRemove) {
+        throw new Error(`Destination with address ${destinationAddress} not found.`);
     }
-    return { ...self, destinations: newDestinations };
+
+    return {
+        ...self,
+        destinations: self.destinations.filter((destination) => destination.address !== destinationAddress)
+    };
 }
 
 export function updateDirection(self: Driver, direction: Direction): Driver {
     return { ...self, direction };
 }
 
-export function updateDestination(
-    self: Driver,
-    originalDestination: Destination,
-    updatedDestinationData: Partial<Destination>
-): Driver {
-    const index = self.destinations.findIndex(
-        (d) => getUniqueDestinationKey(d) === getUniqueDestinationKey(originalDestination)
-    );
-
-    if (index === -1) {
-        console.warn("updateDestination: Original destination not found, returning original state.");
-        return self;
+export function updateDestinationAddress(self: Driver, oldAddress: string, newDestination: Destination): Driver {
+    const destinationToUpdate = self.destinations.find((destination) => destination.address === oldAddress);
+    if (!destinationToUpdate) {
+        throw new Error(`Destination with address ${oldAddress} not found.`);
     }
 
-    const finalDestinations = [...self.destinations];
-    finalDestinations[index] = { ...finalDestinations[index], ...updatedDestinationData };
+    const updatedDestinations = self.destinations.map((destination) =>
+        destination.address === oldAddress ? { ...destination, ...newDestination } : destination
+    );
 
-    return { ...self, destinations: finalDestinations };
+    return {
+        ...self,
+        destinations: updatedDestinations
+    };
 }
 
 export function sortDestinationsByProximity(self: Driver): Driver {
-    const newDestinations = [...self.destinations].sort((a, b) => a.travelDistance - b.travelDistance);
+    const newDestinations = [...self.destinations].sort((a, b) => {
+        const aDistance = a.type === "full" ? a.travelDistance : getHaversineDistance(self.currentLocation, a);
+
+        const bDistance = b.type === "full" ? b.travelDistance : getHaversineDistance(self.currentLocation, b);
+
+        return aDistance - bDistance;
+    });
+
     return { ...self, destinations: newDestinations };
 }
 
@@ -75,23 +78,8 @@ export function getFastestRoute(currentLocation: Location, destinations: Destina
     return sorted;
 }
 
-/*trying this as well - STIN
-
-Start from your currentLocation.
-
-Find the closest destination.
-
-Move there, then repeat — from that location.
-
-Keep building the list until all destinations are used.
-
-this is my idea to represent routes as home page just grabs closest location
-they are pretty similar right now as updating the location would make home update button do the same thing
-but this route update button is calculating the fastest route before you complete any destinations
-this will most likely work more as intended with API data
-*/
-
 export function sortDestinationsByFastestRoute(self: Driver): Driver {
     const sorted = getFastestRoute(self.currentLocation, self.destinations);
+
     return { ...self, destinations: sorted };
 }
