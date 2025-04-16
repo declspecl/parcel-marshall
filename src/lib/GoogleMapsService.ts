@@ -61,6 +61,7 @@ export async function updateDestinations(currLocation: Location, destinations: L
     // Verify that API returns elements in order that it was sent
     const elements = matrix.rows[0].elements;
     const newDestinations: Destination[] = destinations.map((dest, index) => ({
+        type: "full",
         address: matrix.destinationAddresses[index],
         latitude: dest.latitude,
         longitude: dest.longitude,

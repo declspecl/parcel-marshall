@@ -39,7 +39,7 @@ export function DestinationCard({ destination, isCurrent = false }: DestinationC
                             <Compass destination={destination} />
                         </Text>
                     ) : (
-                        <Text>Loading...</Text>
+                        <Text>Routing...</Text>
                     )}
                 </View>
 
