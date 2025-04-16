@@ -52,7 +52,6 @@ export function updateDestinationAddress(self: Driver, oldAddress: string, newDe
 export function sortDestinationsByProximity(self: Driver): Driver {
     const newDestinations = [...self.destinations].sort((a, b) => {
         const aDistance = a.type === "full" ? a.travelDistance : getHaversineDistance(self.currentLocation, a);
-
         const bDistance = b.type === "full" ? b.travelDistance : getHaversineDistance(self.currentLocation, b);
 
         return aDistance - bDistance;
