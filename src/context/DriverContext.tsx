@@ -1,5 +1,5 @@
 import { RouteName } from "@/lib/Routes";
-import { getGeocode } from "@/lib/GoogleMapsService";
+import { getGeocode, updateDestinations } from "@/lib/GoogleMapsService";
 import { LocationService } from "@/lib/LocationService";
 import { createContext, useEffect, useReducer } from "react";
 import { useNavigationState } from "@react-navigation/native";
@@ -56,16 +56,18 @@ export function DriverCtxProvider({ children }: DriverCtxProviderProps) {
 
     useEffect(() => {
         const locationService = new LocationService();
-        const getLocation = async () => {
+        const pollLocations = async () => {
             const location = await locationService.getCurrentLocation();
             if (location) {
                 updateLocation(location);
+                // broken because not including driverState in the dependencies list
+                // setDestinations(await updateDestinations(driverState.currentLocation, driverState.destinations));
             }
         };
 
-        getLocation();
+        pollLocations();
         const interval = setInterval(() => {
-            getLocation();
+            pollLocations();
         }, 10000);
 
         return () => {

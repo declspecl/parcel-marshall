@@ -48,7 +48,9 @@ export default function Home() {
         try {
             addDestination(address.trim());
         } catch (error) {
-            console.warn("Duplicate address detected — skipping");
+            console.error(error);
+            alert(error);
+            return;
         }
 
         setAddress("");

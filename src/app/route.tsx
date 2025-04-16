@@ -21,7 +21,14 @@ export default function Route() {
     const handleAdd = async () => {
         if (!address.trim()) return;
 
-        addDestination(address.trim());
+        try {
+            addDestination(address.trim());
+        } catch (error) {
+            console.error(error);
+            alert(error);
+            return;
+        }
+
         setAddress("");
         setModalVisible(false);
     };

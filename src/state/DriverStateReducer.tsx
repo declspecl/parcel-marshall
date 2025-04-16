@@ -1,4 +1,4 @@
-import { Direction, Destination, Location, EmptyDestination } from "@/model";
+import { Direction, Destination, Location, EmptyDestination, TravelData } from "@/model";
 import {
     addDestination,
     Driver,
@@ -18,7 +18,8 @@ export enum DriverActionTypes {
     SORT_DEST_BY_PROXIMITY,
     SORT_DEST_BY_FASTEST_ROUTE,
     UPDATE_DIRECTION_ADDRESS,
-    SET_DESTINATIONS
+    SET_DESTINATIONS,
+    SET_TRAVEL_DATA
 }
 
 type UpdateLocationAction = {
@@ -64,6 +65,14 @@ type SetDestinationsActions = {
     payload: Destination[];
 };
 
+type SetTravelDataActions = {
+    type: DriverActionTypes.SET_TRAVEL_DATA;
+    payload: {
+        address: string;
+        travelData: TravelData;
+    };
+};
+
 type DriverStateAction =
     | UpdateLocationAction
     | AddDestinationAction
@@ -72,7 +81,8 @@ type DriverStateAction =
     | SortDestinationByProximityAction
     | SortDestinationByFastestRouteAction
     | UpdateDirectionAction
-    | SetDestinationsActions;
+    | SetDestinationsActions
+    | SetTravelDataActions;
 
 export type DriverReducerType = (prevState: Driver, action: DriverStateAction) => Driver;
 export const driverStateReducer: DriverReducerType = (state, action) => {
@@ -103,6 +113,14 @@ export const driverStateReducer: DriverReducerType = (state, action) => {
         }
         case DriverActionTypes.SET_DESTINATIONS: {
             return { ...state, destinations: action.payload };
+        }
+        case DriverActionTypes.SET_TRAVEL_DATA: {
+            const { address, travelData } = action.payload;
+            const updatedDestinations: Destination[] = state.destinations.map((destination) =>
+                destination.address === address ? { ...destination, type: "full", ...travelData } : destination
+            );
+
+            return { ...state, destinations: updatedDestinations };
         }
         default: {
             return state;
