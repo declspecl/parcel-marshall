@@ -1,16 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useDriver } from "@/hooks/useDriver";
-import { Destination } from "@/model/Destination";
 import UpdateButton from "@/components/UpdateButton";
 import AddAddressButton from "@/components/AddAddressButton";
 import CompletionButton from "@/components/CompletionButton";
+import { updateDestinations } from "@/lib/GoogleMapsService";
 import { DestinationCard } from "@/components/DestinationCard";
 import { getFormattedLocation, getUniqueDestinationKey } from "@/model/Location";
 import { Text, View, StyleSheet, Pressable, FlatList, Modal, TextInput } from "react-native";
-import { updateDestinations } from "@/lib/GoogleMapsService";
-
-import { getGeocode } from "../lib/GoogleMapsService";
-import { emptyDuration } from "@/model/Duration";
 
 export default function Home() {
     const { driver, addDestination, removeDestination, setDestinations } = useDriver();
