@@ -1,9 +1,9 @@
 import { Tabs } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { DriverCtxProvider } from "@/context/DriverContext";
 import { useEffect, useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
 import SplashScreen from "@/components/SplashScreen";
 import { RouteLabel, RouteName } from "@/lib/Routes";
+import { DriverCtxProvider } from "@/context/DriverContext";
 import { initGoogleMapsAPI } from "@/lib/GoogleMapsService";
 
 export default function RootLayout() {

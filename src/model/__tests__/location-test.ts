@@ -1,5 +1,4 @@
 import { getHaversineDistance, Location } from "@/model/Location";
-import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 
 describe("Location", () => {
     it("can calculate a zero distance for the same location", () => {
