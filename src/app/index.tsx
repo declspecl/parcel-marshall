@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDriver } from "@/hooks/useDriver";
 import UpdateButton from "@/components/UpdateButton";
 import AddAddressButton from "@/components/AddAddressButton";
@@ -8,10 +8,12 @@ import { DestinationCard } from "@/components/ui/DestinationCard";
 import { getFormattedLocation, getUniqueDestinationKey } from "@/model/Location";
 import { Text, View, StyleSheet, Pressable, FlatList, Modal, TextInput } from "react-native";
 import { useThemeSettings } from "@/context/ThemeContext";
+import { getCityFromCoords } from "@/lib/CityGeoCode";
 
 export default function Home() {
     const { driver, addDestination, removeDestination, setDestinations } = useDriver();
     const destinations = driver.destinations;
+    const [cityName, setCityName] = useState<string | null>(null);
 
     const [modalVisible, setModalVisible] = useState(false);
     const [address, setAddress] = useState("");
@@ -61,6 +63,19 @@ export default function Home() {
     };
 
     const current = destinations[0];
+    useEffect(() => {
+        if (driver.currentLocation) {
+            getCityFromCoords(driver.currentLocation.latitude, driver.currentLocation.longitude)
+                .then((name) => {
+                    console.log("📍 City result:", name);
+                    setCityName(name);
+                })
+                .catch((err) => {
+                    console.error("Reverse geocode failed:", err);
+                    setCityName(null);
+                });
+        }
+    }, [driver.currentLocation]);
 
     return (
         <View
@@ -79,7 +94,11 @@ export default function Home() {
             </Text>
 
             <Text style={[styles.location, darkMode && { color: "#ccc" }, bernardMode && { color: "#c6fccc" }]}>
-                You are at: {getFormattedLocation(driver.currentLocation)}
+                {bernardMode
+                    ? `🐸 You’ve waded into: ${cityName || "an uncharted lily pad"}`
+                    : cityName
+                      ? `You are in: ${cityName}`
+                      : `You are at: ${getFormattedLocation(driver.currentLocation)}`}
             </Text>
 
             <Text style={[styles.direction, darkMode && { color: "#bbb" }, bernardMode && { color: "#a0ffab" }]}>
