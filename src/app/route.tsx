@@ -22,7 +22,7 @@ export default function Route() {
         if (!address.trim()) return;
 
         try {
-            addDestination(address.trim());
+            await addDestination(address.trim());
         } catch (error) {
             console.error(error);
             alert(error);

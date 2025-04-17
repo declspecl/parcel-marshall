@@ -83,6 +83,11 @@ export function DriverCtxProvider({ children }: DriverCtxProviderProps) {
         if (!geocode) throw new Error("Failed to fetch geocode");
 
         const [formattedAddress, latLong] = geocode;
+
+        if (driverState.destinations.some((dest) => dest.address === formattedAddress)) {
+            throw new Error("Destination already exists");
+        }
+
         const destination: EmptyDestination = {
             latitude: latLong.lat(),
             longitude: latLong.lng(),
