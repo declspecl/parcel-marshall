@@ -31,6 +31,7 @@ export default function Route() {
             return;
         }
 
+        pollNow();
         setAddress("");
         setModalVisible(false);
     };

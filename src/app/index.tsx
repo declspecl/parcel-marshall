@@ -55,6 +55,7 @@ export default function Home() {
             return;
         }
 
+        pollNow();
         setAddress("");
         setModalVisible(false);
     };

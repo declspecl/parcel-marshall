@@ -1,7 +1,7 @@
 import { useDriver } from "@/hooks/useDriver";
 import { LocationService } from "@/lib/LocationService";
 import { updateDestinations } from "@/lib/GoogleMapsService";
-import { createContext, useCallback, useEffect, useRef, useContext, useState } from "react";
+import { createContext, useCallback, useEffect, useRef, useState } from "react";
 import { useNavigationState } from "@react-navigation/native";
 import { routes } from "@/lib/Routes";
 
@@ -21,12 +21,19 @@ export function LocationPollingContextProvider({ children }: LocationPollingCont
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
     const routeName = useNavigationState((state) => state.routes[state.index]?.name);
 
-    const pollLocations = useCallback(async () => {
-        if (intervalRef.current) {
-            clearInterval(intervalRef.current);
-        }
-        intervalRef.current = setInterval(pollLocations, 5000);
+    const driverRef = useRef(driver);
+    useEffect(() => {
+        driverRef.current = driver;
+    }, [driver]);
 
+    const routeNameRef = useRef(routeName);
+    useEffect(() => {
+        routeNameRef.current = routeName;
+    }, [routeName]);
+
+    let isCancelled = false;
+
+    const pollLocations = useCallback(async () => {
         const locationService = new LocationService();
         const location = await locationService.getCurrentLocation();
         if (!location) {
@@ -36,8 +43,10 @@ export function LocationPollingContextProvider({ children }: LocationPollingCont
 
         updateLocation(location);
 
-        if (driver.destinations.length > 0) {
-            const updatedDestinations = await updateDestinations(location, driver.destinations);
+        if (driverRef.current.destinations.length > 0) {
+            const updatedDestinations = await updateDestinations(location, driverRef.current.destinations);
+            if (isCancelled) return;
+
             setDestinations(updatedDestinations);
 
             if (routeName === routes.index) {
@@ -46,17 +55,22 @@ export function LocationPollingContextProvider({ children }: LocationPollingCont
                 sortDestinationByFastestRoute();
             }
         }
-    }, [driver.destinations, setDestinations, updateLocation]);
+    }, []);
 
     useEffect(() => {
         pollLocations();
 
+        intervalRef.current = setInterval(pollLocations, 5000);
+
         return () => {
             if (intervalRef.current) {
                 clearInterval(intervalRef.current);
+                intervalRef.current = null;
             }
+
+            isCancelled = true;
         };
-    }, [pollLocations]);
+    }, []);
 
     const pollNow = useCallback(() => {
         console.log("Polling location now...");
