@@ -10,11 +10,12 @@ export function getUniqueDestinationKey(self: Location): string {
     return `${self.latitude}-${self.longitude}-${self.address || "n/a"}`;
 }
 
+const degreesToRadians = (degrees: number) => (degrees * Math.PI) / 180;
+const radiansToDegrees = (radians: number) => (radians * 180) / Math.PI;
 //Changed pythagorean function to haversine formula in order to calculate distance between the two points
 export function getHaversineDistance(A: Location, B: Location): number {
     const radius = 6371; //Earth radius in kilometers
 
-    const degreesToRadians = (degrees: number) => (degrees * Math.PI) / 180;
     const lat1 = A.latitude;
     const lat2 = B.latitude;
     const lon1 = A.longitude;
@@ -34,10 +35,29 @@ export function getHaversineDistance(A: Location, B: Location): number {
     return distance;
 }
 
-export function getDirectionTo(self: Location, other: Location): Direction {
-    // TODO: implement
+function locationDegToRad(self: Location): Location {
+    return {
+        latitude: degreesToRadians(self.latitude),
+        longitude: degreesToRadians(self.longitude),
+        address: self.address
+    };
+}
 
-    return { degrees: 0 };
+export function getDirectionTo(self: Location, other: Location): Direction {
+    console.log("Driver's location", self);
+    console.log("Destination location", other);
+    const radSelf = locationDegToRad(self);
+    const radOther = locationDegToRad(other);
+    const deltaLon = radOther.longitude - radSelf.longitude;
+    let bearing = Math.atan2(
+        Math.sin(deltaLon) * Math.cos(radOther.latitude),
+        Math.cos(radSelf.latitude) * Math.sin(radOther.latitude) -
+            Math.sin(radSelf.latitude) * Math.cos(radOther.latitude) * Math.cos(deltaLon)
+    );
+    bearing = radiansToDegrees(bearing);
+    bearing = (bearing + 360) % 360;
+    console.log("bearing:", bearing);
+    return { degrees: bearing };
 }
 
 export function getFormattedLocation(self: Location): string {

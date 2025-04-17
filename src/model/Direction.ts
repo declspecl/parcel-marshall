@@ -35,3 +35,7 @@ export function getCompassDirection(self: Direction): CompassDirection {
 
     return CompassDirection.NORTH_WEST;
 }
+
+export function directionToString(direction: Direction): string {
+    return `${direction.degrees.toFixed(1)}`;
+}

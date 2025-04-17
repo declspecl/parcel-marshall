@@ -1,4 +1,4 @@
-import { Location } from "@/model/Location";
+import { getDirectionTo, Location } from "@/model/Location";
 import { Destination } from "@/model/Destination";
 import { Loader } from "@googlemaps/js-api-loader";
 import { secondsToDuration } from "@/model/Duration";
@@ -67,7 +67,7 @@ export async function updateDestinations(currLocation: Location, destinations: L
         longitude: dest.longitude,
         travelDuration: secondsToDuration(elements[index].duration.value),
         travelDistance: parseFloat(metresToMiles(elements[index].distance.value).toFixed(1)),
-        travelDirection: { degrees: 0 }
+        travelDirection: getDirectionTo(currLocation, dest)
     }));
     return newDestinations;
 }
