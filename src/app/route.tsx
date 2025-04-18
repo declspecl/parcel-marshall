@@ -20,21 +20,35 @@ export default function Route() {
     const [address, setAddress] = useState("");
     const [isUpdating, setIsUpdating] = useState(false);
     const [showToast, setShowToast] = useState(false);
+    const [toastMessage, setToastMessage] = useState<string | null>(null);
     //setting up bernard mode 🐸
     const { darkMode, bernardMode } = useThemeSettings();
+
     const handleAdd = async () => {
         if (!address.trim()) return;
 
+        setIsUpdating(true);
+        setToastMessage(bernardMode ? "🐸 Bernard is adding your destination..." : "Adding destination...");
+
         try {
             await addDestination(address.trim());
+            setToastMessage(bernardMode ? "🐸 Destination added successfully!" : "Destination added successfully!");
         } catch (error) {
             console.error(error);
-            alert(error);
-            return;
+            setToastMessage(
+                bernardMode
+                    ? "🐸 Bernard denied your duplicate address. Please try again."
+                    : "Duplicate address denied. Please try again."
+            );
         }
 
         setAddress("");
         setModalVisible(false);
+
+        setTimeout(() => {
+            setIsUpdating(false);
+            setToastMessage(null);
+        }, 2000);
     };
 
     const handleRemove = (destination: Destination) => {
@@ -133,13 +147,9 @@ export default function Route() {
 
             <UpdateButton onPress={handleUpdate} loading={isUpdating} />
 
-            {showToast && (
+            {toastMessage && (
                 <View style={[styles.toast, bernardMode && { backgroundColor: "#2a6f2a" }]}>
-                    <Text style={styles.toastText}>
-                        {bernardMode
-                            ? "🐸 Bernard is optimizing your vibes..."
-                            : "⏱ ParcelMarshall is optimizing for speed..."}
-                    </Text>
+                    <Text style={styles.toastText}>{toastMessage}</Text>
                 </View>
             )}
 
@@ -209,6 +219,11 @@ export default function Route() {
                     </Pressable>
                 </View>
             </Modal>
+            {toastMessage && (
+                <View style={[styles.toast, bernardMode && { backgroundColor: "#2a6f2a" }]}>
+                    <Text style={styles.toastText}>{toastMessage}</Text>
+                </View>
+            )}
         </View>
     );
 }
