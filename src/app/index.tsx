@@ -4,9 +4,10 @@ import UpdateButton from "@/components/UpdateButton";
 import AddAddressButton from "@/components/AddAddressButton";
 import CompletionButton from "@/components/CompletionButton";
 import { updateDestinations } from "@/lib/GoogleMapsService";
-import { DestinationCard } from "@/components/DestinationCard";
+import { DestinationCard } from "@/components/ui/DestinationCard";
 import { getFormattedLocation, getUniqueDestinationKey } from "@/model/Location";
 import { Text, View, StyleSheet, Pressable, FlatList, Modal, TextInput } from "react-native";
+import { useThemeSettings } from "@/context/ThemeContext";
 
 export default function Home() {
     const { driver, addDestination, removeDestination, setDestinations } = useDriver();
@@ -14,6 +15,8 @@ export default function Home() {
 
     const [modalVisible, setModalVisible] = useState(false);
     const [address, setAddress] = useState("");
+    //setting up bernard mode 🐸
+    const { darkMode, bernardMode } = useThemeSettings();
 
     const handleComplete = () => {
         if (destinations.length === 0) return;
@@ -60,15 +63,36 @@ export default function Home() {
     const current = destinations[0];
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Home Page (but we’re never home) 🏡</Text>
-            <Text style={styles.subtext}>The only ‘home’ we know is the next stop</Text>
-            <Text style={styles.location}>You are at: {getFormattedLocation(driver.currentLocation)}</Text>
-            <Text style={styles.direction}>Traveling 🧭 N</Text>
+        <View
+            style={[
+                styles.container,
+                darkMode && { backgroundColor: "#111" },
+                bernardMode && { backgroundColor: "#0e1e0e" } // Bernard Vibes 😎🐸
+            ]}
+        >
+            <Text style={[styles.title, darkMode && { color: "#eee" }, bernardMode && { color: "#baffc9" }]}>
+                {bernardMode ? "🐸 Welcome to the Marsh" : "Home Page (but we’re never home) 🏡"}
+            </Text>
+
+            <Text style={[styles.subtext, darkMode && { color: "#aaa" }, bernardMode && { color: "#d4ffd9" }]}>
+                {bernardMode ? "Ribbit. The next stop is destiny." : "The only ‘home’ we know is the next stop"}
+            </Text>
+
+            <Text style={[styles.location, darkMode && { color: "#ccc" }, bernardMode && { color: "#c6fccc" }]}>
+                You are at: {getFormattedLocation(driver.currentLocation)}
+            </Text>
+
+            <Text style={[styles.direction, darkMode && { color: "#bbb" }, bernardMode && { color: "#a0ffab" }]}>
+                Traveling 🧭 N
+            </Text>
+
             <UpdateButton onPress={handleUpdate} loading={isUpdating} />
+
             {showToast && (
-                <View style={styles.toast}>
-                    <Text style={styles.toastText}>📍 ParcelMarshall is rerouting...</Text>
+                <View style={[styles.toast, bernardMode && { backgroundColor: "#2a6f2a" }]}>
+                    <Text style={styles.toastText}>
+                        {bernardMode ? "🐸Bernard is rerouting..." : "📍ParcelMarshall is rerouting..."}
+                    </Text>
                 </View>
             )}
 
@@ -85,20 +109,54 @@ export default function Home() {
 
             <AddAddressButton onPress={() => setModalVisible(true)} />
 
-            {destinations.length > 0 ? (
-                <CompletionButton onPress={handleComplete} label="Mark as Complete" />
-            ) : (
-                <CompletionButton onPress={() => {}} label="📦 Mission Complete, Marshall!" disabled />
-            )}
+            <CompletionButton
+                onPress={destinations.length > 0 ? handleComplete : () => {}}
+                label={
+                    destinations.length > 0
+                        ? bernardMode
+                            ? "🐸 Another hop, another drop"
+                            : "Mark as Complete"
+                        : bernardMode
+                          ? "🐸 Mission complete, Marsh Walker."
+                          : "📦 Mission Complete, Marshall!"
+                }
+                disabled={destinations.length === 0}
+            />
 
             <Modal visible={modalVisible} transparent animationType="fade">
-                <View style={styles.modal}>
+                <View
+                    style={[
+                        styles.modal,
+                        darkMode && { backgroundColor: "#222" },
+                        bernardMode && { backgroundColor: "#1f3d1f" }
+                    ]}
+                >
                     <Pressable style={styles.closeBtn} onPress={() => setModalVisible(false)}>
                         <Text style={styles.closeText}>❌</Text>
                     </Pressable>
-                    <Text style={styles.modalTitle}>Add Destination</Text>
-                    <TextInput placeholder="Address" value={address} onChangeText={setAddress} style={styles.input} />
-                    <Pressable style={styles.modalAdd} onPress={handleAdd}>
+
+                    <Text
+                        style={[styles.modalTitle, darkMode && { color: "#fff" }, bernardMode && { color: "#baffc9" }]}
+                    >
+                        Add Destination
+                    </Text>
+
+                    <TextInput
+                        placeholder="Address"
+                        placeholderTextColor={darkMode || bernardMode ? "#aaa" : "#999"}
+                        value={address}
+                        onChangeText={setAddress}
+                        style={[
+                            styles.input,
+                            darkMode && { color: "#fff", backgroundColor: "#333", borderColor: "#555" },
+                            bernardMode && { color: "#d0ffd6", backgroundColor: "#284f28", borderColor: "#67b067" }
+                        ]}
+                    />
+
+                    <Pressable
+                        style={[styles.modalAdd, bernardMode && { backgroundColor: "#4CAF50" }]}
+                        onPress={handleAdd}
+                    >
                         <Text style={styles.modalAddText}>Add</Text>
                     </Pressable>
                 </View>

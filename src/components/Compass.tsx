@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { StyleSheet, View } from "react-native";
 import { CompassDirection, Destination, getCompassDirection } from "@/model";
-
+import { useThemeSettings } from "@/context/ThemeContext";
 interface CompassProps {
     readonly destination: Destination;
 }
@@ -18,12 +18,22 @@ const compassIconMap: Record<CompassDirection, { name: keyof typeof Ionicons.gly
 };
 
 export function Compass({ destination }: CompassProps) {
+    if (destination.type !== "full") return null;
     const compassDirection = getCompassDirection(destination.travelDirection);
     const { name: iconName, rotation } = compassIconMap[compassDirection];
+    const { darkMode, bernardMode } = useThemeSettings();
+
+    const borderColor = bernardMode ? "#a4f6aa" : darkMode ? "#bbb" : "#000";
+    const arrowColor = bernardMode ? "#baffc9" : darkMode ? "#eee" : "#000";
 
     return (
-        <View style={styles.container}>
-            <Ionicons name={iconName} size={16} color="black" style={{ transform: [{ rotate: `${rotation}deg` }] }} />
+        <View style={[styles.container, { borderColor }]}>
+            <Ionicons
+                name={iconName}
+                size={14}
+                color={arrowColor}
+                style={{ transform: [{ rotate: `${rotation}deg` }] }}
+            />
         </View>
     );
 }
@@ -33,7 +43,10 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         borderWidth: 1,
-        borderColor: "black",
-        borderRadius: "100%"
+        borderRadius: 999,
+        padding: 4,
+        marginLeft: 4,
+        minWidth: 22,
+        minHeight: 22
     }
 });

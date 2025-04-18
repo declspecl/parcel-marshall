@@ -21,6 +21,7 @@
 
 import React, { useEffect, useRef } from "react";
 import { Pressable, StyleSheet, Text, View, Animated } from "react-native";
+import { useThemeSettings } from "@/context/ThemeContext";
 
 type Props = {
     onPress: () => void;
@@ -29,6 +30,7 @@ type Props = {
 
 const UpdateButton = ({ onPress, loading = false }: Props) => {
     const spinAnim = useRef(new Animated.Value(0)).current;
+    const { darkMode, bernardMode } = useThemeSettings();
 
     useEffect(() => {
         if (loading) {
@@ -51,14 +53,32 @@ const UpdateButton = ({ onPress, loading = false }: Props) => {
     });
 
     return (
-        <Pressable style={styles.button} onPress={onPress} disabled={loading}>
+        <Pressable
+            style={[styles.button, darkMode && styles.buttonDark, bernardMode && styles.buttonBernard]}
+            onPress={onPress}
+            disabled={loading}
+        >
             <View style={styles.buttonContent}>
-                {loading ? (
-                    <Animated.Text style={[styles.spinner, { transform: [{ rotate: spin }] }]}>🔄</Animated.Text>
-                ) : (
-                    <Text style={styles.spinner}>🔄</Text>
-                )}
-                <Text style={styles.buttonText}> Update Route</Text>
+                <Animated.Text
+                    style={[
+                        styles.spinner,
+                        {
+                            transform: [{ rotate: spin }],
+                            color: bernardMode ? "#0e1f0e" : darkMode ? "#eee" : "#000"
+                        }
+                    ]}
+                >
+                    🔄
+                </Animated.Text>
+                <Text
+                    style={[
+                        styles.buttonText,
+                        darkMode && styles.buttonTextDark,
+                        bernardMode && styles.buttonTextBernard
+                    ]}
+                >
+                    {bernardMode ? " Hopdate Route" : " Update Route"}
+                </Text>
             </View>
         </Pressable>
     );
@@ -72,6 +92,14 @@ const styles = StyleSheet.create({
         alignSelf: "flex-start",
         marginBottom: 20
     },
+    buttonDark: {
+        backgroundColor: "#444"
+    },
+    buttonBernard: {
+        backgroundColor: "#58d68d",
+        borderColor: "#1b6f34",
+        borderWidth: 2
+    },
     buttonContent: {
         flexDirection: "row",
         alignItems: "center"
@@ -81,8 +109,15 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
         fontSize: 16
     },
+    buttonTextDark: {
+        color: "#eee"
+    },
+    buttonTextBernard: {
+        color: "#0e1f0e"
+    },
     spinner: {
-        fontSize: 16
+        fontSize: 16,
+        marginRight: 6
     }
 });
 

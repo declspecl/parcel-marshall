@@ -23,6 +23,7 @@
 
 import React from "react";
 import { Pressable, StyleSheet, Text } from "react-native";
+import { useThemeSettings } from "@/context/ThemeContext";
 
 type Props = {
     onPress: () => void;
@@ -30,11 +31,25 @@ type Props = {
     disabled?: boolean;
 };
 
-const CompletionButton = ({ onPress, label = "Mark as Complete", disabled = false }: Props) => (
-    <Pressable style={[styles.button, disabled && styles.disabled]} onPress={onPress} disabled={disabled}>
-        <Text style={styles.buttonText}>{label}</Text>
-    </Pressable>
-);
+const CompletionButton = ({ onPress, label = "Mark as Complete", disabled = false }: Props) => {
+    const { darkMode, bernardMode } = useThemeSettings();
+
+    const disabledColor = bernardMode
+        ? "#264d3c" // 🐸 Bernard muted green
+        : darkMode
+          ? "#444" // 🌑 Dark mode gray
+          : "#a0a0a0"; // ☀️ Light mode gray
+
+    return (
+        <Pressable
+            style={[styles.button, disabled && { backgroundColor: disabledColor }]}
+            onPress={onPress}
+            disabled={disabled}
+        >
+            <Text style={styles.buttonText}>{label}</Text>
+        </Pressable>
+    );
+};
 
 const styles = StyleSheet.create({
     button: {
@@ -42,9 +57,6 @@ const styles = StyleSheet.create({
         backgroundColor: "#28a745",
         padding: 10,
         borderRadius: 6
-    },
-    disabled: {
-        backgroundColor: "#a0a0a0"
     },
     buttonText: {
         color: "white",
