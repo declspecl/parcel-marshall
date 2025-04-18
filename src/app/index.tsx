@@ -27,6 +27,7 @@ export default function Home() {
 
     const [isUpdating, setIsUpdating] = useState(false);
     const [showToast, setShowToast] = useState(false);
+    const [toastMessage, setToastMessage] = useState<string | null>(null);
 
     //using antons code to sort the destinations by proximity to the driver
     // placeholder for future logic
@@ -50,16 +51,28 @@ export default function Home() {
     const handleAdd = async () => {
         if (!address.trim()) return;
 
+        setIsUpdating(true);
+        setToastMessage(bernardMode ? "🐸 Bernard is adding your destination..." : "Adding destination...");
+
         try {
             await addDestination(address.trim());
+            setToastMessage(bernardMode ? "🐸 Destination added successfully!" : "Destination added successfully!");
         } catch (error) {
             console.error(error);
-            alert(error);
-            return;
+            setToastMessage(
+                bernardMode
+                    ? "🐸 Bernard denied your duplicate address. Please try again."
+                    : "Duplicate address denied. Please try again."
+            );
         }
 
         setAddress("");
         setModalVisible(false);
+
+        setTimeout(() => {
+            setIsUpdating(false);
+            setToastMessage(null);
+        }, 2000);
     };
 
     const current = destinations[0];
@@ -180,6 +193,11 @@ export default function Home() {
                     </Pressable>
                 </View>
             </Modal>
+            {toastMessage && (
+                <View style={[styles.toast, bernardMode && { backgroundColor: "#2a6f2a" }]}>
+                    <Text style={styles.toastText}>{toastMessage}</Text>
+                </View>
+            )}
         </View>
     );
 }
