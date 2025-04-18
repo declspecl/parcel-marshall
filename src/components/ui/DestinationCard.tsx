@@ -10,9 +10,10 @@ import { useThemeSettings } from "@/context/ThemeContext";
 interface DestinationCardProps {
     readonly destination: Destination;
     readonly isCurrent?: boolean;
+    readonly isRoutesPage?: boolean;
 }
 
-export function DestinationCard({ destination, isCurrent = false }: DestinationCardProps) {
+export function DestinationCard({ destination, isCurrent = false, isRoutesPage = false }: DestinationCardProps) {
     const { driver, removeDestination, updateDestinationAddress } = useDriver();
     const [isModalVisible, setIsModalVisible] = useState(false);
     const { darkMode, bernardMode } = useThemeSettings();
@@ -40,8 +41,8 @@ export function DestinationCard({ destination, isCurrent = false }: DestinationC
                     <Text
                         style={[
                             styles.address,
-                            (darkMode || bernardMode) && styles.addressDark, // apply shared styling
-                            bernardMode && styles.addressBernard // then apply Bernard-specific overrides
+                            (darkMode || bernardMode) && styles.addressDark,
+                            bernardMode && styles.addressBernard
                         ]}
                         numberOfLines={2}
                         ellipsizeMode="tail"
@@ -50,11 +51,34 @@ export function DestinationCard({ destination, isCurrent = false }: DestinationC
                     </Text>
 
                     {destination.type === "full" ? (
-                        <Text style={[styles.meta, darkMode && { color: "#ccc" }, bernardMode && { color: "#c2ffd9" }]}>
-                            {destination.travelDistance}mi · {destination.travelDirection.degrees}°
-                            {getCompassDirectionAbbreviation(getCompassDirection(destination.travelDirection))}{" "}
-                            <Compass destination={destination} />
-                        </Text>
+                        <>
+                            <Text
+                                style={[
+                                    styles.meta,
+                                    darkMode && { color: "#ccc" },
+                                    bernardMode && { color: "#c2ffd9" }
+                                ]}
+                            >
+                                {destination.travelDistance.toFixed(1)}mi · {destination.travelDirection.degrees}°
+                                {getCompassDirectionAbbreviation(getCompassDirection(destination.travelDirection))}{" "}
+                                <Compass destination={destination} />
+                            </Text>
+
+                            {isRoutesPage && destination.cumulativeDistance !== undefined && (
+                                <Text
+                                    style={{
+                                        marginTop: 2,
+                                        fontSize: 13,
+                                        fontWeight: "600",
+                                        color: bernardMode ? "#8dfcba" : darkMode ? "#ddd" : "#333"
+                                    }}
+                                >
+                                    {bernardMode
+                                        ? `Hop Count: ${destination.cumulativeDistance.toFixed(1)} mi 🍃`
+                                        : `Total: ${destination.cumulativeDistance.toFixed(1)} mi`}
+                                </Text>
+                            )}
+                        </>
                     ) : (
                         <Text style={[styles.meta, darkMode && { color: "#bbb" }]}>Routing...</Text>
                     )}

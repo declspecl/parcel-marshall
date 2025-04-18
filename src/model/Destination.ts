@@ -10,9 +10,11 @@ export type EmptyDestination = Location & {
     readonly address: string;
 };
 
+//working on cumulative distance
 export type FullDestination = Location &
     TravelData & {
         readonly address: string;
+        readonly cumulativeDistance?: number;
     };
 
 export type Destination =
@@ -29,4 +31,17 @@ export function stripTravelData(self: Destination): EmptyDestination {
         longitude: self.longitude,
         address: self.address
     };
+}
+
+export function addCumulativeDistance(destinations: Destination[]): Destination[] {
+    let total = 0;
+
+    return destinations.map((dest) => {
+        if (dest.type === "full") {
+            total += dest.travelDistance;
+            return { ...dest, cumulativeDistance: total };
+        }
+
+        return dest;
+    });
 }

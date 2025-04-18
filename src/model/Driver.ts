@@ -1,5 +1,5 @@
 import { Direction } from "./Direction";
-import { Destination } from "./Destination";
+import { Destination, addCumulativeDistance } from "./Destination";
 import { getHaversineDistance, Location } from "./Location";
 
 export interface Driver {
@@ -77,8 +77,10 @@ export function getFastestRoute(currentLocation: Location, destinations: Destina
     return sorted;
 }
 
+//heh happy I messed up and kept this nested function
 export function sortDestinationsByFastestRoute(self: Driver): Driver {
     const sorted = getFastestRoute(self.currentLocation, self.destinations);
-
-    return { ...self, destinations: sorted };
+    const withCumulative = addCumulativeDistance(sorted);
+    console.log(withCumulative);
+    return { ...self, destinations: withCumulative };
 }

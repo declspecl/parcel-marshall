@@ -50,13 +50,18 @@ export default function Route() {
             driver.destinations.map((d) => d.address)
         );
         const newDestinations = await updateDestinations(driver.currentLocation, driver.destinations);
-        const sorted = getFastestRoute(driver.currentLocation, newDestinations);
-        setDestinations(sorted);
-        sortDestinationsByFastestRoute(driver);
+        const sorted = sortDestinationsByFastestRoute({
+            ...driver,
+            destinations: newDestinations
+        });
+
+        setDestinations(sorted.destinations);
+
         console.log(
             "✅ After sort:",
-            sorted.map((d) => d.address)
+            sorted.destinations.map((d) => d.address)
         );
+
         setTimeout(() => {
             setIsUpdating(false);
             setShowToast(false);
@@ -125,6 +130,7 @@ export default function Route() {
                     <DestinationCard
                         destination={item}
                         isCurrent={getUniqueDestinationKey(item) === getUniqueDestinationKey(destinations[0])}
+                        isRoutesPage={true} // this enables the total distance display
                     />
                 )}
             />
