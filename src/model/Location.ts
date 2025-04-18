@@ -44,8 +44,6 @@ function locationDegToRad(self: Location): Location {
 }
 
 export function getDirectionTo(self: Location, other: Location): Direction {
-    console.log("Driver's location", self);
-    console.log("Destination location", other);
     const radSelf = locationDegToRad(self);
     const radOther = locationDegToRad(other);
     const deltaLon = radOther.longitude - radSelf.longitude;
@@ -56,7 +54,6 @@ export function getDirectionTo(self: Location, other: Location): Direction {
     );
     bearing = radiansToDegrees(bearing);
     bearing = (bearing + 360) % 360;
-    console.log("bearing:", bearing);
     return { degrees: bearing };
 }
 
