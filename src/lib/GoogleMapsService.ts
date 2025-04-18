@@ -1,4 +1,4 @@
-import { Location } from "@/model/Location";
+import { getDirectionTo, Location } from "@/model/Location";
 import { Destination } from "@/model/Destination";
 import { Loader } from "@googlemaps/js-api-loader";
 import { secondsToDuration } from "@/model/Duration";
@@ -41,33 +41,39 @@ function metresToMiles(metres: number): number {
     return metres / 1609.344;
 }
 
-export async function updateDestinations(currLocation: Location, destinations: Location[]): Promise<Destination[]> {
+function locationToLatLngLiteral(location: Location): google.maps.LatLngLiteral {
+    return { lat: location.latitude, lng: location.longitude };
+}
+
+export async function updateDestinations(currLocation: Location, destinations: Destination[]): Promise<Destination[]> {
     if (distanceMatrixService === undefined) return [];
-    const transformedDestinations: google.maps.LatLngLiteral[] = destinations.map((value) => {
-        return {
-            lat: value.latitude,
-            lng: value.longitude
-        };
-    });
-    const latLngCurrLoc: google.maps.LatLngLiteral = { lat: currLocation.latitude, lng: currLocation.longitude };
+    const transformedDestinations: google.maps.LatLngLiteral[] = destinations.map(locationToLatLngLiteral);
+    const latLngCurrLoc: google.maps.LatLngLiteral = locationToLatLngLiteral(currLocation);
     const request = {
         origins: [latLngCurrLoc],
         destinations: transformedDestinations,
         travelMode: google.maps.TravelMode.DRIVING
     };
-    console.log(request);
-    const matrix = await distanceMatrixService.getDistanceMatrix(request);
-    console.log(matrix);
-    // Verify that API returns elements in order that it was sent
-    const elements = matrix.rows[0].elements;
-    const newDestinations: Destination[] = destinations.map((dest, index) => ({
-        type: "full",
-        address: matrix.destinationAddresses[index],
-        latitude: dest.latitude,
-        longitude: dest.longitude,
-        travelDuration: secondsToDuration(elements[index].duration.value),
-        travelDistance: parseFloat(metresToMiles(elements[index].distance.value).toFixed(1)),
-        travelDirection: { degrees: 0 }
-    }));
-    return newDestinations;
+    try {
+        console.log(request);
+        const matrix = await distanceMatrixService.getDistanceMatrix(request);
+        console.log(matrix);
+        const elements = matrix.rows[0].elements;
+        const newDestinations: Destination[] = destinations.map((dest, index) => {
+            if (elements[index].status != "OK") return dest;
+            return {
+                type: "full",
+                address: matrix.destinationAddresses[index],
+                latitude: dest.latitude,
+                longitude: dest.longitude,
+                travelDuration: secondsToDuration(elements[index].duration.value),
+                travelDistance: parseFloat(metresToMiles(elements[index].distance.value).toFixed(1)),
+                travelDirection: getDirectionTo(currLocation, dest)
+            };
+        });
+        return newDestinations;
+    } catch (error) {
+        console.log(error);
+        return destinations;
+    }
 }
