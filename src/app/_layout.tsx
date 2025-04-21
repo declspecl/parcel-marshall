@@ -4,7 +4,6 @@ import { Ionicons } from "@expo/vector-icons";
 import SplashScreen from "@/components/ui/SplashScreen";
 import { RouteLabel, RouteName } from "@/lib/Routes";
 import { DriverCtxProvider } from "@/context/DriverContext";
-import { initGoogleMapsAPI } from "@/lib/GoogleMapsService";
 import Toast, { BaseToast } from "react-native-toast-message";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { BernardToast } from "@/components/ui/BernardToast";
@@ -86,11 +85,6 @@ const toastConfig = {
 //this was to add dark mode lol
 export default function RootLayout() {
     const [isSplashVisible, setSplashVisible] = useState(true);
-
-    useEffect(() => {
-        initGoogleMapsAPI();
-    }, []);
-
     if (isSplashVisible) {
         return <SplashScreen onFinish={() => setSplashVisible(false)} />;
     }
