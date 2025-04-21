@@ -1,5 +1,5 @@
 import { RouteName } from "@/lib/Routes";
-import { getGeocode } from "@/lib/GoogleMapsService";
+import { getGeocode, updateDestinations } from "@/lib/GoogleMapsService";
 import { LocationService } from "@/lib/LocationService";
 import { createContext, useEffect, useReducer } from "react";
 import { useNavigationState } from "@react-navigation/native";
@@ -89,8 +89,8 @@ export function DriverCtxProvider({ children }: DriverCtxProviderProps) {
         }
 
         const destination: EmptyDestination = {
-            latitude: latLong.latitude,
-            longitude: latLong.longitude,
+            latitude: latLong.lat(),
+            longitude: latLong.lng(),
             address: formattedAddress
         };
 
@@ -105,8 +105,8 @@ export function DriverCtxProvider({ children }: DriverCtxProviderProps) {
 
         const [formattedAddress, latLong] = geocode;
         const destination: EmptyDestination = {
-            latitude: latLong.latitude,
-            longitude: latLong.longitude,
+            latitude: latLong.lat(),
+            longitude: latLong.lng(),
             address: formattedAddress
         };
 
