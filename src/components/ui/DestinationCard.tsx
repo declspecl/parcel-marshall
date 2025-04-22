@@ -59,7 +59,7 @@ export function DestinationCard({ destination, isCurrent = false, isRoutesPage =
                                     bernardMode && { color: "#c2ffd9" }
                                 ]}
                             >
-                                {destination.travelDistance.toFixed(1)}mi · {destination.travelDirection.degrees}°
+                                {destination.travelDistance.toFixed(1)}mi ·{" "}
                                 {getCompassDirectionAbbreviation(getCompassDirection(destination.travelDirection))}{" "}
                                 <Compass destination={destination} />
                             </Text>

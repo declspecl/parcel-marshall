@@ -141,10 +141,6 @@ export default function Route() {
                       : `You are at: ${getFormattedLocation(driver.currentLocation)}`}
             </Text>
 
-            <Text style={[styles.direction, darkMode && { color: "#bbb" }, bernardMode && { color: "#a0ffab" }]}>
-                Traveling 🧭 N
-            </Text>
-
             <UpdateButton onPress={handleUpdate} loading={isUpdating} />
 
             {toastMessage && (
