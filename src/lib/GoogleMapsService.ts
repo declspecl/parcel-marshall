@@ -1,5 +1,6 @@
 import { getDirectionTo, Location } from "@/model/Location";
 import { Destination } from "@/model/Destination";
+import { Loader } from "@googlemaps/js-api-loader";
 import { secondsToDuration } from "@/model/Duration";
 
 const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY;
@@ -7,26 +8,33 @@ if (!GOOGLE_MAPS_API_KEY) {
     throw new Error("Google Maps API key is not defined in .env");
 }
 
+const loader = new Loader({
+    apiKey: GOOGLE_MAPS_API_KEY,
+    libraries: ["routes", "geocoding"]
+});
+
 console.log("Google API key", GOOGLE_MAPS_API_KEY);
 
-const GEOCODE_URL = (address: string) =>
-    `https://maps.googleapis.com/maps/api/geocode/json?` +
-    `address=${encodeURIComponent(address)}` +
-    `&key=${GOOGLE_MAPS_API_KEY}`;
+let distanceMatrixService: google.maps.DistanceMatrixService | undefined;
+let geocodingService: google.maps.Geocoder | undefined;
 
-export async function getGeocode(address: string) {
-    const res = await fetch(GEOCODE_URL(address));
-    if (!res.ok) throw new Error(`Geocode HTTP error ${res.status}`);
-    const json = await res.json();
-    if (json.status !== "OK" || !json.results.length) return null;
-    const result = json.results[0];
-    return [
-        result.formatted_address as string,
-        {
-            latitude: result.geometry.location.lat,
-            longitude: result.geometry.location.lng
-        }
-    ] as [string, { latitude: number; longitude: number }];
+export async function initGoogleMapsAPI() {
+    loader.importLibrary("routes").then((value) => (distanceMatrixService = new value.DistanceMatrixService()));
+    loader.importLibrary("geocoding").then((value) => (geocodingService = new value.Geocoder()));
+}
+
+export async function getGeocode(address: string): Promise<[string, google.maps.LatLng] | null> {
+    if (geocodingService == undefined) return null;
+    const response = await geocodingService.geocode({
+        address
+    });
+    console.log(response);
+    const res = response.results[0];
+    if (res) {
+        return [res.formatted_address, res.geometry.location];
+    } else {
+        return null;
+    }
 }
 
 function metresToMiles(metres: number): number {
@@ -37,46 +45,35 @@ function locationToLatLngLiteral(location: Location): google.maps.LatLngLiteral 
     return { lat: location.latitude, lng: location.longitude };
 }
 
-function buildDistanceMatrixUrl(
-    origin: { latitude: number; longitude: number },
-    destinations: { latitude: number; longitude: number }[]
-) {
-    const originsParam = `${origin.latitude},${origin.longitude}`;
-    const destParam = destinations.map((d) => `${d.latitude},${d.longitude}`).join("|");
-    return (
-        `https://maps.googleapis.com/maps/api/distancematrix/json?` +
-        `origins=${originsParam}` +
-        `&destinations=${destParam}` +
-        `&mode=driving` +
-        `&units=imperial` +
-        `&key=${GOOGLE_MAPS_API_KEY}`
-    );
-}
-
 export async function updateDestinations(currLocation: Location, destinations: Destination[]): Promise<Destination[]> {
-    const url = buildDistanceMatrixUrl(currLocation, destinations);
-    const res = await fetch(url);
-    if (!res.ok) {
-        console.warn("Distance Matrix HTTP error", res.status);
+    if (distanceMatrixService === undefined) return [];
+    const transformedDestinations: google.maps.LatLngLiteral[] = destinations.map(locationToLatLngLiteral);
+    const latLngCurrLoc: google.maps.LatLngLiteral = locationToLatLngLiteral(currLocation);
+    const request = {
+        origins: [latLngCurrLoc],
+        destinations: transformedDestinations,
+        travelMode: google.maps.TravelMode.DRIVING
+    };
+    try {
+        console.log(request);
+        const matrix = await distanceMatrixService.getDistanceMatrix(request);
+        console.log(matrix);
+        const elements = matrix.rows[0].elements;
+        const newDestinations: Destination[] = destinations.map((dest, index) => {
+            if (elements[index].status != "OK") return dest;
+            return {
+                type: "full",
+                address: matrix.destinationAddresses[index],
+                latitude: dest.latitude,
+                longitude: dest.longitude,
+                travelDuration: secondsToDuration(elements[index].duration.value),
+                travelDistance: parseFloat(metresToMiles(elements[index].distance.value).toFixed(1)),
+                travelDirection: getDirectionTo(currLocation, dest)
+            };
+        });
+        return newDestinations;
+    } catch (error) {
+        console.log(error);
         return destinations;
     }
-    const data = await res.json();
-    if (data.status !== "OK") {
-        console.warn("Distance Matrix API error", data.status);
-        return destinations;
-    }
-
-    const row = data.rows[0];
-    return destinations.map((dest, i) => {
-        const elem = row.elements[i];
-        if (elem.status !== "OK") return dest;
-        return {
-            ...dest,
-            type: "full",
-            address: data.destination_addresses[i],
-            travelDuration: secondsToDuration(elem.duration.value),
-            travelDistance: parseFloat((elem.distance.value / 1609.344).toFixed(1)),
-            travelDirection: getDirectionTo(currLocation, dest)
-        };
-    });
 }
