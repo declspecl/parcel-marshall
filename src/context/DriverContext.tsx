@@ -111,15 +111,15 @@ export function DriverCtxProvider({ children }: DriverCtxProviderProps) {
         const geocode = await getGeocode(address);
         if (!geocode) throw new Error("Failed to fetch geocode");
 
-        const [formattedAddress, latLong] = geocode;
+        const { formattedAddress, getLatitude, getLongitude } = geocode;
 
         if (driverState.destinations.some((dest) => dest.address === formattedAddress)) {
             throw new Error("Destination already exists");
         }
 
         const destination: EmptyDestination = {
-            latitude: latLong.lat(),
-            longitude: latLong.lng(),
+            latitude: getLatitude(),
+            longitude: getLongitude(),
             address: formattedAddress
         };
 
@@ -133,10 +133,10 @@ export function DriverCtxProvider({ children }: DriverCtxProviderProps) {
         const geocode = await getGeocode(newAddress);
         if (!geocode) throw new Error("Failed to fetch geocode");
 
-        const [formattedAddress, latLong] = geocode;
+        const { formattedAddress, getLatitude, getLongitude } = geocode;
         const destination: EmptyDestination = {
-            latitude: latLong.lat(),
-            longitude: latLong.lng(),
+            latitude: getLatitude(),
+            longitude: getLongitude(),
             address: formattedAddress
         };
 

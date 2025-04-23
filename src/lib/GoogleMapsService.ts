@@ -2,6 +2,7 @@ import { getDirectionTo, Location } from "@/model/Location";
 import { Destination } from "@/model/Destination";
 import { Loader } from "@googlemaps/js-api-loader";
 import { secondsToDuration } from "@/model/Duration";
+import { Platform } from "react-native";
 
 const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY;
 if (!GOOGLE_MAPS_API_KEY) {
@@ -23,7 +24,7 @@ export async function initGoogleMapsAPI() {
     loader.importLibrary("geocoding").then((value) => (geocodingService = new value.Geocoder()));
 }
 
-export async function getGeocode(address: string): Promise<[string, google.maps.LatLng] | null> {
+export async function getGeocodeWithSdk(address: string): Promise<[string, google.maps.LatLng] | null> {
     if (geocodingService == undefined) return null;
     const response = await geocodingService.geocode({
         address
@@ -37,6 +38,55 @@ export async function getGeocode(address: string): Promise<[string, google.maps.
     }
 }
 
+const GEOCODE_URL = (address: string) =>
+    `https://maps.googleapis.com/maps/api/geocode/json?` +
+    `address=${encodeURIComponent(address)}` +
+    `&key=${GOOGLE_MAPS_API_KEY}`;
+
+export async function getGeocodeWithRestApi(address: string) {
+    const res = await fetch(GEOCODE_URL(address));
+    if (!res.ok) throw new Error(`Geocode HTTP error ${res.status}`);
+    const json = await res.json();
+    if (json.status !== "OK" || !json.results.length) return null;
+    const result = json.results[0];
+    return [
+        result.formatted_address as string,
+        {
+            latitude: result.geometry.location.lat,
+            longitude: result.geometry.location.lng
+        }
+    ] as [string, { latitude: number; longitude: number }];
+}
+
+interface PlatformAgnosticGeocode {
+    formattedAddress: string;
+    getLatitude: () => number;
+    getLongitude: () => number;
+}
+
+export async function getGeocode(address: string): Promise<PlatformAgnosticGeocode | null> {
+    const isWeb = Platform.OS === "web";
+    if (isWeb) {
+        const geocode = await getGeocodeWithSdk(address);
+        if (!geocode) return null;
+
+        return {
+            formattedAddress: geocode[0],
+            getLatitude: () => geocode[1].lat(),
+            getLongitude: () => geocode[1].lng()
+        };
+    } else {
+        const geocode = await getGeocodeWithRestApi(address);
+        if (!geocode) return null;
+
+        return {
+            formattedAddress: geocode[0],
+            getLatitude: () => geocode[1].latitude,
+            getLongitude: () => geocode[1].longitude
+        };
+    }
+}
+
 function metresToMiles(metres: number): number {
     return metres / 1609.344;
 }
@@ -45,7 +95,10 @@ function locationToLatLngLiteral(location: Location): google.maps.LatLngLiteral 
     return { lat: location.latitude, lng: location.longitude };
 }
 
-export async function updateDestinations(currLocation: Location, destinations: Destination[]): Promise<Destination[]> {
+export async function updateDestinationsWithSdk(
+    currLocation: Location,
+    destinations: Destination[]
+): Promise<Destination[]> {
     if (distanceMatrixService === undefined) return [];
     const transformedDestinations: google.maps.LatLngLiteral[] = destinations.map(locationToLatLngLiteral);
     const latLngCurrLoc: google.maps.LatLngLiteral = locationToLatLngLiteral(currLocation);
@@ -75,5 +128,61 @@ export async function updateDestinations(currLocation: Location, destinations: D
     } catch (error) {
         console.log(error);
         return destinations;
+    }
+}
+
+function buildDistanceMatrixUrl(
+    origin: { latitude: number; longitude: number },
+    destinations: { latitude: number; longitude: number }[]
+) {
+    const originsParam = `${origin.latitude},${origin.longitude}`;
+    const destParam = destinations.map((d) => `${d.latitude},${d.longitude}`).join("|");
+    return (
+        `https://maps.googleapis.com/maps/api/distancematrix/json?` +
+        `origins=${originsParam}` +
+        `&destinations=${destParam}` +
+        `&mode=driving` +
+        `&units=imperial` +
+        `&key=${GOOGLE_MAPS_API_KEY}`
+    );
+}
+
+export async function updateDestinationsWithRestApi(
+    currLocation: Location,
+    destinations: Destination[]
+): Promise<Destination[]> {
+    const url = buildDistanceMatrixUrl(currLocation, destinations);
+    const res = await fetch(url);
+    if (!res.ok) {
+        console.warn("Distance Matrix HTTP error", res.status);
+        return destinations;
+    }
+    const data = await res.json();
+    if (data.status !== "OK") {
+        console.warn("Distance Matrix API error", data.status);
+        return destinations;
+    }
+
+    const row = data.rows[0];
+    return destinations.map((dest, i) => {
+        const elem = row.elements[i];
+        if (elem.status !== "OK") return dest;
+        return {
+            ...dest,
+            type: "full",
+            address: data.destination_addresses[i],
+            travelDuration: secondsToDuration(elem.duration.value),
+            travelDistance: parseFloat((elem.distance.value / 1609.344).toFixed(1)),
+            travelDirection: getDirectionTo(currLocation, dest)
+        };
+    });
+}
+
+export async function updateDestinations(currLocation: Location, destinations: Destination[]): Promise<Destination[]> {
+    const isWeb = Platform.OS === "web";
+    if (isWeb) {
+        return updateDestinationsWithSdk(currLocation, destinations);
+    } else {
+        return updateDestinationsWithRestApi(currLocation, destinations);
     }
 }
