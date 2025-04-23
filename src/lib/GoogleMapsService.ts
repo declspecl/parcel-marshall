@@ -133,7 +133,6 @@ declare global {
 export async function chunkAndUpdateDestinations(
     currLocation: Location,
     destinations: Destination[],
-
     chunkSize = 25
 ): Promise<Destination[]> {
     const updatedAll: Destination[] = [];
@@ -276,4 +275,13 @@ export async function updateDestinations(currLocation: Location, destinations: D
     } else {
         return updateDestinationsWithRestApi(currLocation, destinations);
     }
+}
+
+export function getGoogleMapsDirectionsUrl(addresses: string[]): string {
+    // Limit to 20 addresses for Google Maps
+    const cappedAddresses = addresses.splice(1, 20);
+
+    const baseUrl = "https://www.google.com/maps/dir/";
+    const encodedAddresses = cappedAddresses.map(encodeURIComponent).join("/");
+    return baseUrl + encodedAddresses;
 }

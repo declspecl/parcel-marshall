@@ -6,10 +6,12 @@ import AddAddressButton from "@/components/AddAddressButton";
 import CompletionButton from "@/components/CompletionButton";
 import { DestinationCard } from "@/components/ui/DestinationCard";
 import { getFormattedLocation, getUniqueDestinationKey } from "@/model/Location";
-import { Text, View, StyleSheet, FlatList, Pressable, Modal, TextInput } from "react-native";
+import { Text, View, StyleSheet, FlatList, Pressable, Modal, TextInput, Linking } from "react-native";
 import { Destination, getFastestRoute, sortDestinationsByFastestRoute, updateDestinationAddress } from "@/model";
 import { useThemeSettings } from "@/context/ThemeContext";
 import { getCityFromCoords } from "@/lib/CityGeoCode";
+import { getGoogleMapsDirectionsUrl } from "@/lib/GoogleMapsService";
+import { MaterialIcons } from "@expo/vector-icons";
 
 export default function Route() {
     const { driver, addDestination, removeDestination, setDestinations } = useDriver();
@@ -248,19 +250,31 @@ export default function Route() {
 
             <AddAddressButton onPress={() => setModalVisible(true)} />
 
-            <CompletionButton
-                onPress={destinations.length > 0 ? handleComplete : () => {}}
-                label={
-                    destinations.length > 0
-                        ? bernardMode
-                            ? "🐸 Another hop, another drop"
-                            : "Mark as Complete"
-                        : bernardMode
-                          ? "🐸 Mission complete, Marsh Walker."
-                          : "📦 Mission Complete, Marshall!"
-                }
-                disabled={destinations.length === 0}
-            />
+            <View style={{ width: "100%", display: "flex", flexDirection: "row", gap: "12px" }}>
+                <CompletionButton
+                    onPress={destinations.length > 0 ? handleComplete : () => {}}
+                    label={
+                        destinations.length > 0
+                            ? bernardMode
+                                ? "🐸 Another hop, another drop"
+                                : "Mark as Complete"
+                            : bernardMode
+                              ? "🐸 Mission complete, Marsh Walker."
+                              : "📦 Mission Complete, Marshall!"
+                    }
+                    disabled={destinations.length === 0}
+                />
+                <Pressable
+                    style={[styles.completeBtn, { backgroundColor: "#4285F4" }]}
+                    onPress={() => {
+                        const addresses = destinations.map((dest) => dest.address);
+                        const url = getGoogleMapsDirectionsUrl(addresses);
+                        Linking.openURL(url);
+                    }}
+                >
+                    <MaterialIcons name="directions" size={24} color="white" />
+                </Pressable>
+            </View>
 
             <Modal visible={modalVisible} transparent animationType="fade">
                 <View
@@ -525,6 +539,22 @@ const styles = StyleSheet.create({
         width: "90%",
         height: "65%",
         top: "15%"
+    },
+    completeBtn: {
+        marginTop: 12,
+        backgroundColor: "#28a745",
+        padding: 10,
+        borderRadius: 6
+    },
+    completeText: {
+        color: "white",
+        fontWeight: "bold",
+        textAlign: "center"
+    },
+    googleMapsIcon: {
+        marginLeft: 8,
+        padding: 8,
+        borderRadius: 6
     }
 });
 
