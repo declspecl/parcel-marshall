@@ -78,7 +78,7 @@ export function DestinationCard({ destination, isCurrent = false, isRoutesPage =
                             <Text
                                 style={[
                                     styles.meta,
-                                    { marginTop: 4 },
+                                    { marginTop: 4, display: "flex", flexDirection: "row", alignItems: "center" },
                                     darkMode && { color: "#ccc" },
                                     bernardMode && { color: "#c2ffd9" }
                                 ]}
