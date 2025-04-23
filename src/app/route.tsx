@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useDriver } from "@/hooks/useDriver";
 import UpdateButton from "@/components/UpdateButton";
-import { updateDestinations } from "@/lib/GoogleMapsService";
+import { updateDestinations, geocodeAddress, chunkAndUpdateDestinations } from "@/lib/GoogleMapsService";
 import AddAddressButton from "@/components/AddAddressButton";
 import CompletionButton from "@/components/CompletionButton";
 import { DestinationCard } from "@/components/ui/DestinationCard";
@@ -18,6 +18,11 @@ export default function Route() {
 
     const [modalVisible, setModalVisible] = useState(false);
     const [address, setAddress] = useState("");
+    //adding state to control the toggle for bulk add
+    const [bulkMode, setBulkMode] = useState(false);
+    const [bulkInput, setBulkInput] = useState("");
+    const [failedAddresses, setFailedAddresses] = useState<string[]>([]);
+
     const [isUpdating, setIsUpdating] = useState(false);
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -65,7 +70,9 @@ export default function Route() {
             "➡️ Before sort:",
             driver.destinations.map((d) => d.address)
         );
-        const newDestinations = await updateDestinations(driver.currentLocation, driver.destinations);
+        //chunking function that gets by 25 limit api calls
+        //const newDestinations = await updateDestinations(driver.currentLocation, driver.destinations);
+        const newDestinations = await chunkAndUpdateDestinations(driver.currentLocation, driver.destinations);
         const sorted = sortDestinationsByFastestRoute({
             ...driver,
             destinations: newDestinations
@@ -83,14 +90,91 @@ export default function Route() {
             setShowToast(false);
         }, 2000);
     };
+    //bulk add function
+    const handleBulkAdd = async () => {
+        setFailedAddresses([]);
+        const lines = bulkInput
+            .split("\n")
+            .map((line) => line.trim())
+            .filter((line) => line.length > 0);
 
+        if (lines.length === 0) {
+            setToastMessage("No valid addresses found");
+            return;
+        }
+
+        setIsUpdating(true);
+        setToastMessage(bernardMode ? "🐸 Bulk hopping to destinations..." : "Adding multiple destinations...");
+
+        let added = 0;
+        let failed: string[] = [];
+        let newDestinations: Destination[] = [];
+
+        for (const line of lines) {
+            try {
+                console.log(`🛠️ Attempting to geocode: "${line}"`);
+                const result = await geocodeAddress(line);
+                if (result) {
+                    newDestinations.push({
+                        ...result,
+                        address: result.address ?? "Unknown location",
+                        type: "partial",
+                        travelDuration: "0 min",
+                        travelDistance: 0,
+                        travelDirection: "N/A"
+                    });
+
+                    added++;
+                } else {
+                    failed.push(line);
+                }
+            } catch (error) {
+                console.warn(`❌ Failed to geocode: "${line}"`, error);
+                failed.push(line);
+            }
+
+            await new Promise((res) => setTimeout(res, 200));
+        }
+        //chunking function to get past 25 limit on API
+        //const updated = await updateDestinations(driver.currentLocation, [...driver.destinations, ...newDestinations]);
+        const updated = await chunkAndUpdateDestinations(driver.currentLocation, [
+            ...driver.destinations,
+            ...newDestinations
+        ]);
+        setDestinations(updated);
+        setFailedAddresses(failed);
+
+        console.log(`✅ Added ${added} destinations. Skipped ${failed.length}.`);
+        console.log("Total now in state:", updated.length);
+
+        setBulkInput("");
+        if (failed.length === 0) {
+            setModalVisible(false);
+        }
+
+        const resultMessage =
+            failed.length === 0
+                ? bernardMode
+                    ? `🐸 All ${added} lily pads added!`
+                    : `✅ Added ${added} addresses!`
+                : bernardMode
+                  ? `🐸 Added ${added}. Skipped ${failed.length} swampy ones.`
+                  : `✅ Added ${added}, failed on ${failed.length}`;
+
+        setToastMessage(resultMessage);
+
+        setTimeout(() => {
+            setIsUpdating(false);
+            setToastMessage(null);
+        }, 4000);
+    };
     const current = destinations[0];
     //for grabbing city name instead of coords
     useEffect(() => {
         if (driver.currentLocation) {
             getCityFromCoords(driver.currentLocation.latitude, driver.currentLocation.longitude)
                 .then((name) => {
-                    console.log("📍 City result:", name);
+                    //console.log("📍 City result:", name);
                     setCityName(name);
                 })
                 .catch((err) => {
@@ -152,9 +236,10 @@ export default function Route() {
             <FlatList
                 data={destinations}
                 keyExtractor={(item) => getUniqueDestinationKey(item)}
-                renderItem={({ item }) => (
+                renderItem={({ item, index }) => (
                     <DestinationCard
                         destination={item}
+                        index={index}
                         isCurrent={getUniqueDestinationKey(item) === getUniqueDestinationKey(destinations[0])}
                         isRoutesPage={true} // this enables the total distance display
                     />
@@ -181,37 +266,135 @@ export default function Route() {
                 <View
                     style={[
                         styles.modal,
+                        bulkMode && styles.modalLarge,
                         darkMode && { backgroundColor: "#222" },
                         bernardMode && { backgroundColor: "#1f3d1f" }
                     ]}
                 >
-                    <Pressable style={styles.closeBtn} onPress={() => setModalVisible(false)}>
+                    <Pressable
+                        style={styles.closeBtn}
+                        onPress={() => {
+                            setModalVisible(false);
+                            setFailedAddresses([]);
+                        }}
+                    >
                         <Text style={styles.closeText}>❌</Text>
                     </Pressable>
 
                     <Text
                         style={[styles.modalTitle, darkMode && { color: "#fff" }, bernardMode && { color: "#baffc9" }]}
                     >
-                        Add Destination
+                        {bulkMode ? "Bulk Add Destinations" : "Add Destination"}
                     </Text>
 
-                    <TextInput
-                        placeholder="Address"
-                        placeholderTextColor={darkMode || bernardMode ? "#aaa" : "#999"}
-                        value={address}
-                        onChangeText={setAddress}
-                        style={[
-                            styles.input,
-                            darkMode && { color: "#fff", backgroundColor: "#333", borderColor: "#555" },
-                            bernardMode && { color: "#d0ffd6", backgroundColor: "#284f28", borderColor: "#67b067" }
-                        ]}
-                    />
+                    {bulkMode ? (
+                        <>
+                            <TextInput
+                                multiline
+                                numberOfLines={15}
+                                placeholder="Paste multiple addresses, one per line to ensure accuracy!"
+                                placeholderTextColor={darkMode || bernardMode ? "#aaa" : "#999"}
+                                value={bulkInput}
+                                onChangeText={setBulkInput}
+                                style={[
+                                    styles.input,
+                                    {
+                                        height: 450,
+                                        width: "100%",
+                                        textAlignVertical: "top",
+                                        fontSize: 18,
+                                        lineHeight: 27,
+                                        padding: 20,
+                                        borderRadius: 10,
+                                        fontFamily: "monospace",
+                                        backgroundColor: "#f5f5f5",
+                                        color: "#222",
+                                        borderWidth: 1,
+                                        borderColor: "#ccc"
+                                    },
+                                    darkMode && {
+                                        backgroundColor: "#2a2a2a",
+                                        color: "#fff",
+                                        borderColor: "#555"
+                                    },
+                                    bernardMode && {
+                                        backgroundColor: "#284f28",
+                                        color: "#d0ffd6",
+                                        borderColor: "#67b067"
+                                    }
+                                ]}
+                            />
+
+                            {failedAddresses.length > 0 && (
+                                <View
+                                    style={{
+                                        marginTop: 10,
+                                        padding: 16,
+                                        backgroundColor: bernardMode ? "#452a2a" : "#ffeeee",
+                                        borderRadius: 10,
+                                        borderColor: bernardMode ? "#bb7777" : "#cc0000",
+                                        borderWidth: 1,
+                                        minWidth: 400
+                                    }}
+                                >
+                                    <Text
+                                        style={{
+                                            fontWeight: "bold",
+                                            marginBottom: 6,
+                                            color: bernardMode ? "#ffbbbb" : "#cc0000",
+                                            fontSize: 16
+                                        }}
+                                    >
+                                        ❌ {failedAddresses.length} address{failedAddresses.length !== 1 ? "es" : ""}{" "}
+                                        failed to geocode:
+                                    </Text>
+                                    {failedAddresses.map((addr, index) => (
+                                        <Text
+                                            key={index}
+                                            style={{
+                                                color: bernardMode ? "#ffdddd" : "#990000",
+                                                fontSize: 18,
+                                                lineHeight: 22
+                                            }}
+                                        >
+                                            • {addr}
+                                        </Text>
+                                    ))}
+                                </View>
+                            )}
+                        </>
+                    ) : (
+                        <TextInput
+                            placeholder="Address"
+                            placeholderTextColor={darkMode || bernardMode ? "#aaa" : "#999"}
+                            value={address}
+                            onChangeText={setAddress}
+                            style={[
+                                styles.input,
+                                darkMode && { color: "#fff", backgroundColor: "#333", borderColor: "#555" },
+                                bernardMode && { color: "#d0ffd6", backgroundColor: "#284f28", borderColor: "#67b067" }
+                            ]}
+                        />
+                    )}
 
                     <Pressable
                         style={[styles.modalAdd, bernardMode && { backgroundColor: "#4CAF50" }]}
-                        onPress={handleAdd}
+                        onPress={bulkMode ? handleBulkAdd : handleAdd}
                     >
-                        <Text style={styles.modalAddText}>Add</Text>
+                        <Text style={styles.modalAddText}>{bulkMode ? "Add All" : "Add"}</Text>
+                    </Pressable>
+
+                    {/* Bulk Toggle Button */}
+                    <Pressable
+                        style={styles.bulkToggle}
+                        onPress={() => {
+                            setBulkMode(!bulkMode);
+                            setFailedAddresses([]);
+                        }}
+                    >
+                        <Text style={styles.bulkToggleText}>
+                            {bulkMode ? "↩️ Switch to Single Add" : "📋 Bulk Add Mode"}
+                        </Text>
                     </Pressable>
                 </View>
             </Modal>
@@ -236,7 +419,7 @@ const styles = StyleSheet.create({
         marginBottom: 20
     },
     card: {
-        backgroundColor: "#ffffff", // white card for contrast
+        backgroundColor: "#f2f2ff", // white card for contrast
         padding: 12,
         borderRadius: 8,
         marginBottom: 12,
@@ -322,6 +505,26 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
         fontSize: 20,
         textAlign: "center"
+    },
+    //toggle bulk add button
+    bulkToggle: {
+        position: "absolute",
+        bottom: 12,
+        right: 12,
+        padding: 6,
+        borderRadius: 4,
+        backgroundColor: "transparent"
+    },
+    bulkToggleText: {
+        color: "#00bfff",
+        fontSize: 16,
+        textAlign: "right"
+    },
+    //adding larger modal size for bulk add
+    modalLarge: {
+        width: "90%",
+        height: "65%",
+        top: "15%"
     }
 });
 

@@ -58,5 +58,7 @@ export function getDirectionTo(self: Location, other: Location): Direction {
 }
 
 export function getFormattedLocation(self: Location): string {
-    return `${self.latitude.toFixed(5)}°N, ${self.longitude.toFixed(5)}°E`;
+    const latDir = self.latitude >= 0 ? "N" : "S";
+    const lngDir = self.longitude >= 0 ? "E" : "W";
+    return `${Math.abs(self.latitude).toFixed(5)}°${latDir}, ${Math.abs(self.longitude).toFixed(5)}°${lngDir}`;
 }

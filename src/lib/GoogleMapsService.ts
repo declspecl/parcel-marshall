@@ -9,6 +9,8 @@ if (!GOOGLE_MAPS_API_KEY) {
     throw new Error("Google Maps API key is not defined in .env");
 }
 
+const DEBUG = false;
+
 const loader = new Loader({
     apiKey: GOOGLE_MAPS_API_KEY,
     libraries: ["routes", "geocoding"]
@@ -95,6 +97,68 @@ function locationToLatLngLiteral(location: Location): google.maps.LatLngLiteral 
     return { lat: location.latitude, lng: location.longitude };
 }
 
+//bulk add function to load addresses first then update when needed
+//this reduces rate limiting
+export async function geocodeAddress(address: string): Promise<Location | null> {
+    if (!window.google || !window.google.maps) {
+        console.warn("Google Maps API is not loaded.");
+        return null;
+    }
+
+    const geocoder = new window.google.maps.Geocoder();
+
+    return new Promise((resolve) => {
+        geocoder.geocode({ address }, (results, status) => {
+            if (status === "OK" && results && results.length > 0) {
+                const { lat, lng } = results[0].geometry.location;
+                resolve({
+                    address: results[0].formatted_address,
+                    latitude: lat(),
+                    longitude: lng()
+                });
+            } else {
+                console.warn(`❌ Geocode failed for: "${address}" — Status: ${status}`);
+                resolve(null);
+            }
+        });
+    });
+}
+//bulk add update to get past 25 limit.
+//WIP I dont wanna fight it anymore 👿👿
+declare global {
+    interface Window {
+        __MOCK_ROUTING__?: boolean;
+    }
+}
+export async function chunkAndUpdateDestinations(
+    currLocation: Location,
+    destinations: Destination[],
+
+    chunkSize = 25
+): Promise<Destination[]> {
+    const updatedAll: Destination[] = [];
+    const validDestinations = destinations.filter((d) => !!d.latitude && !!d.longitude);
+
+    for (let i = 0; i < validDestinations.length; i += chunkSize) {
+        const chunk = validDestinations.slice(i, i + chunkSize);
+        console.log(`🚚 Processing chunk ${i / chunkSize + 1}: ${chunk.length} destinations`);
+
+        try {
+            const updatedChunk = await updateDestinationsWithSdk(currLocation, chunk);
+            updatedAll.push(...updatedChunk);
+        } catch (error) {
+            console.error(`🔥 Failed to update chunk ${i / chunkSize + 1}`, error);
+            updatedAll.push(...chunk);
+        }
+
+        // Optional: Delay to avoid rate limits
+        await new Promise((res) => setTimeout(res, 500));
+    }
+
+    return updatedAll;
+}
+//-------
+
 export async function updateDestinationsWithSdk(
     currLocation: Location,
     destinations: Destination[]
@@ -108,12 +172,24 @@ export async function updateDestinationsWithSdk(
         travelMode: google.maps.TravelMode.DRIVING
     };
     try {
-        console.log(request);
+        if (DEBUG) console.log(request);
         const matrix = await distanceMatrixService.getDistanceMatrix(request);
-        console.log(matrix);
-        const elements = matrix.rows[0].elements;
+        if (DEBUG) console.log(matrix);
+        const elements = matrix?.rows?.[0]?.elements || [];
         const newDestinations: Destination[] = destinations.map((dest, index) => {
-            if (elements[index].status != "OK") return dest;
+            const element = elements[index];
+            if (element.status != "OK") {
+                console.warn(`❌ Unable to route to: ${dest.address} — Status: ${element?.status || "No Element"}`);
+                return {
+                    ...dest,
+                    type: "partial",
+                    travelDuration: "0 min",
+                    travelDistance: 0,
+                    travelDirection: "N/A"
+                };
+            }
+            //work around for addresses we cannot route to
+
             return {
                 type: "full",
                 address: matrix.destinationAddresses[index],
@@ -124,6 +200,12 @@ export async function updateDestinationsWithSdk(
                 travelDirection: getDirectionTo(currLocation, dest)
             };
         });
+        if (DEBUG) {
+            console.log(`✅ Final routed destinations: ${newDestinations.length}`);
+            newDestinations.forEach((d, i) => {
+                console.log(`#${i + 1}: ${d.address} — ${d.type}`);
+            });
+        }
         return newDestinations;
     } catch (error) {
         console.log(error);
@@ -166,7 +248,16 @@ export async function updateDestinationsWithRestApi(
     const row = data.rows[0];
     return destinations.map((dest, i) => {
         const elem = row.elements[i];
-        if (elem.status !== "OK") return dest;
+        if (elem.status !== "OK") {
+            console.warn(`❌ Unable to route to: ${dest.address} — Status: ${elem.status}`);
+            return {
+                ...dest,
+                type: "partial",
+                travelDuration: "0 min",
+                travelDistance: 0,
+                travelDirection: "N/A"
+            };
+        }
         return {
             ...dest,
             type: "full",
