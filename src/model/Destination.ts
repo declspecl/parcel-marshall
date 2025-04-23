@@ -17,9 +17,19 @@ export type FullDestination = Location &
         readonly cumulativeDistance?: number;
     };
 
+export type PartialDestination = {
+    latitude: number;
+    longitude: number;
+    address: string;
+    travelDuration: string;
+    travelDistance: number;
+    travelDirection: string;
+};
+
 export type Destination =
     | (EmptyDestination & { readonly type: "empty" })
-    | (FullDestination & { readonly type: "full" });
+    | (FullDestination & { readonly type: "full" })
+    | (PartialDestination & { readonly type: "partial" });
 
 export function setTravelData(self: Destination, travelData: TravelData): FullDestination {
     return { ...self, ...travelData };

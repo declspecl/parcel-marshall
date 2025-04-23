@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import React, { useState, useEffect } from "react";
 import { Modal, View, Text, TextInput, Button, StyleSheet, Pressable } from "react-native";
 import { Destination } from "@/model/Destination";
+import { useThemeSettings } from "@/context/ThemeContext";
 
 interface EditAddressModalProps {
     isVisible: boolean;
@@ -12,6 +13,7 @@ interface EditAddressModalProps {
 
 export function EditAddressModal({ isVisible, destination, onSave, onClose }: EditAddressModalProps) {
     const [editedAddress, setEditedAddress] = useState("");
+    const { darkMode, bernardMode } = useThemeSettings();
 
     useEffect(() => {
         if (destination) {
@@ -34,16 +36,43 @@ export function EditAddressModal({ isVisible, destination, onSave, onClose }: Ed
     return (
         <Modal animationType="none" transparent={true} visible={isVisible} onRequestClose={onClose}>
             <View style={styles.centeredView}>
-                <View style={styles.modalView}>
+                <View
+                    style={[
+                        styles.modalView,
+                        darkMode && { backgroundColor: "#222" },
+                        bernardMode && { backgroundColor: "#1f3d1f" }
+                    ]}
+                >
                     <Pressable style={styles.closeButton} onPress={onClose}>
-                        <Ionicons name="close-circle" size={24} color="grey" />
+                        <Ionicons
+                            name="close-circle"
+                            size={24}
+                            color={bernardMode ? "#baffc9" : darkMode ? "#aaa" : "grey"}
+                        />
                     </Pressable>
-                    <Text style={styles.modalTitle}>Edit Address</Text>
+                    <Text
+                        style={[styles.modalTitle, darkMode && { color: "#eee" }, bernardMode && { color: "#baffc9" }]}
+                    >
+                        Edit Address
+                    </Text>
                     <TextInput
-                        style={styles.input}
+                        style={[
+                            styles.input,
+                            darkMode && {
+                                backgroundColor: "#333",
+                                color: "#fff",
+                                borderColor: "#555"
+                            },
+                            bernardMode && {
+                                backgroundColor: "#284f28",
+                                color: "#d0ffd6",
+                                borderColor: "#67b067"
+                            }
+                        ]}
                         onChangeText={setEditedAddress}
                         value={editedAddress}
                         placeholder="Enter new address"
+                        placeholderTextColor={darkMode || bernardMode ? "#aaa" : "#999"}
                         autoFocus={true}
                     />
                     <View style={styles.buttonContainer}>

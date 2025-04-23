@@ -18,6 +18,10 @@ export async function getCityFromCoords(lat: number, lng: number): Promise<strin
             components.find((comp: any) => comp.types.includes("sublocality")) ??
             components.find((comp: any) => comp.types.includes("neighborhood"));
         components.find((comp: any) => comp.types.includes("administrative_area_level_2"));
+        //testing reverse geocode bug
+        //The lilypad has been accurately located
+        //console.log("🔍 Reverse geocode input:", lat, lng);
+        //console.log("📦 Full response:", data);
 
         return cityComponent?.long_name || null;
     } catch (error) {

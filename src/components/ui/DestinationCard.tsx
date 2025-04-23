@@ -11,9 +11,10 @@ interface DestinationCardProps {
     readonly destination: Destination;
     readonly isCurrent?: boolean;
     readonly isRoutesPage?: boolean;
+    readonly index: number;
 }
 
-export function DestinationCard({ destination, isCurrent = false, isRoutesPage = false }: DestinationCardProps) {
+export function DestinationCard({ destination, isCurrent = false, isRoutesPage = false, index }: DestinationCardProps) {
     const { driver, removeDestination, updateDestinationAddress } = useDriver();
     const [isModalVisible, setIsModalVisible] = useState(false);
     const { darkMode, bernardMode } = useThemeSettings();
@@ -34,13 +35,35 @@ export function DestinationCard({ destination, isCurrent = false, isRoutesPage =
                     bernardMode && styles.bernardCard,
                     isCurrent && styles.currentCard,
                     isCurrent && darkMode && styles.currentCardDark,
-                    isCurrent && bernardMode && styles.currentCardBernard
+                    isCurrent && bernardMode && styles.currentCardBernard,
+                    { flexDirection: "row", alignItems: "flex-start" }
                 ]}
             >
+                <View
+                    style={{
+                        width: 20,
+                        alignItems: "center",
+                        marginTop: 15,
+                        paddingTop: 4,
+                        marginRight: 16
+                    }}
+                >
+                    <Text
+                        style={{
+                            fontWeight: "bold",
+                            fontSize: 14,
+                            color: darkMode || bernardMode ? "#aaa" : "#444"
+                        }}
+                    >
+                        #{index + 1}
+                    </Text>
+                </View>
+
                 <View style={{ flex: 1 }}>
                     <Text
                         style={[
                             styles.address,
+                            { fontWeight: "bold", fontSize: 15 },
                             (darkMode || bernardMode) && styles.addressDark,
                             bernardMode && styles.addressBernard
                         ]}
@@ -55,6 +78,7 @@ export function DestinationCard({ destination, isCurrent = false, isRoutesPage =
                             <Text
                                 style={[
                                     styles.meta,
+                                    { marginTop: 4 },
                                     darkMode && { color: "#ccc" },
                                     bernardMode && { color: "#c2ffd9" }
                                 ]}
@@ -79,17 +103,34 @@ export function DestinationCard({ destination, isCurrent = false, isRoutesPage =
                                 </Text>
                             )}
                         </>
+                    ) : destination.type === "partial" ? (
+                        <Text
+                            style={[
+                                styles.partialWarning,
+                                darkMode && { color: "#ff9999" },
+                                bernardMode && { color: "#ffeea9" }
+                            ]}
+                        >
+                            🚫{" "}
+                            {bernardMode
+                                ? "This lily pad's out of hopping range."
+                                : "Unable to route this destination."}
+                        </Text>
                     ) : (
                         <Text style={[styles.meta, darkMode && { color: "#bbb" }]}>Routing...</Text>
                     )}
                 </View>
 
+                {/* Buttons */}
                 <View style={styles.buttonsContainer}>
                     <Pressable
                         style={[
                             styles.editBtn,
                             darkMode && { backgroundColor: "#333" },
-                            bernardMode && { backgroundColor: "#5fd27f", borderColor: "#1d4027" }
+                            bernardMode && {
+                                backgroundColor: "#5fd27f",
+                                borderColor: "#1d4027"
+                            }
                         ]}
                         onPress={() => setIsModalVisible(true)}
                     >
@@ -100,7 +141,10 @@ export function DestinationCard({ destination, isCurrent = false, isRoutesPage =
                         style={[
                             styles.removeBtn,
                             darkMode && { backgroundColor: "#aa0000" },
-                            bernardMode && { backgroundColor: "#f25f5c", borderColor: "#2e8b57" }
+                            bernardMode && {
+                                backgroundColor: "#f25f5c",
+                                borderColor: "#2e8b57"
+                            }
                         ]}
                         onPress={() => removeDestination(destination.address)}
                     >
@@ -198,5 +242,11 @@ const styles = StyleSheet.create({
         backgroundColor: "#143d2b",
         borderColor: "#58d68d",
         borderWidth: 2
+    },
+    partialWarning: {
+        fontSize: 13,
+        fontStyle: "italic",
+        color: "#ff4c4c",
+        marginTop: 4
     }
 });
