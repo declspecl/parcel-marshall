@@ -42,4 +42,36 @@ export class PersistantStoreService {
             await SecureStore.setItemAsync("destinations", JSON.stringify(destinations));
         }
     }
+
+    getTheme(): { darkMode: boolean; bernardMode: boolean } | null {
+        const theme = isWeb ? localStorage.getItem("theme") : SecureStore.getItem("theme");
+        if (!theme) {
+            return null;
+        }
+        return JSON.parse(theme);
+    }
+
+    async getThemeAsync(): Promise<{ darkMode: boolean; bernardMode: boolean } | null> {
+        const theme = isWeb ? localStorage.getItem("theme") : await SecureStore.getItemAsync("theme");
+        if (!theme) {
+            return null;
+        }
+        return JSON.parse(theme);
+    }
+
+    setTheme(theme: { darkMode: boolean; bernardMode: boolean }): void {
+        if (isWeb) {
+            localStorage.setItem("theme", JSON.stringify(theme));
+        } else {
+            SecureStore.setItem("theme", JSON.stringify(theme));
+        }
+    }
+
+    async setThemeAsync(theme: { darkMode: boolean; bernardMode: boolean }): Promise<void> {
+        if (isWeb) {
+            localStorage.setItem("theme", JSON.stringify(theme));
+        } else {
+            await SecureStore.setItemAsync("theme", JSON.stringify(theme));
+        }
+    }
 }
