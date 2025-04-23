@@ -103,31 +103,32 @@ export default function Home() {
         let failed: string[] = [];
         let newDestinations: Destination[] = [];
 
-        for (const line of lines) {
-            try {
-                console.log(`🛠️ Attempting to geocode: "${line}"`);
-                const result = await geocodeAddress(line);
-                if (result) {
-                    newDestinations.push({
-                        ...result,
-                        address: result.address ?? "Unknown location",
-                        type: "partial",
-                        travelDuration: "0 min",
-                        travelDistance: 0,
-                        travelDirection: "N/A"
-                    });
+        await Promise.all(
+            lines.map(async (line) => {
+                try {
+                    console.log(`🛠️ Attempting to geocode: "${line}"`);
+                    const result = await geocodeAddress(line);
+                    if (result) {
+                        newDestinations.push({
+                            ...result,
+                            address: result.address ?? "Unknown location",
+                            type: "partial",
+                            travelDuration: "0 min",
+                            travelDistance: 0,
+                            travelDirection: "N/A"
+                        });
 
-                    added++;
-                } else {
+                        added++;
+                    } else {
+                        failed.push(line);
+                    }
+                } catch (error) {
+                    console.warn(`❌ Failed to geocode: "${line}"`, error);
                     failed.push(line);
                 }
-            } catch (error) {
-                console.warn(`❌ Failed to geocode: "${line}"`, error);
-                failed.push(line);
-            }
+            })
+        );
 
-            await new Promise((res) => setTimeout(res, 200));
-        }
         //chunking function to get past 25 limit on API
         //const updated = await updateDestinations(driver.currentLocation, [...driver.destinations, ...newDestinations]);
         const updated = await chunkAndUpdateDestinations(driver.currentLocation, [
