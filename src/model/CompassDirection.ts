@@ -13,5 +13,5 @@ export function getCompassDirectionAbbreviation(self: CompassDirection): string 
     return self
         .split(" ")
         .map((word) => word[0])
-        .join();
+        .join("");
 }
