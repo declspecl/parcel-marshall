@@ -1,7 +1,7 @@
 import { RouteName } from "@/lib/Routes";
 import { getGeocode, updateDestinations } from "@/lib/GoogleMapsService";
 import { LocationService } from "@/lib/LocationService";
-import { createContext, useEffect, useReducer } from "react";
+import { createContext, useEffect, useReducer, useRef } from "react";
 import { useNavigationState } from "@react-navigation/native";
 import { PersistantStoreService } from "@/store/PersistantStoreService";
 import { Driver, Location, Destination, Direction, EmptyDestination } from "@/model";
@@ -27,19 +27,30 @@ interface DriverCtxProviderProps {
 
 export function DriverCtxProvider({ children }: DriverCtxProviderProps) {
     const storeService = new PersistantStoreService();
+    const locationService = new LocationService();
     const routeName = useNavigationState((state) => state.routes[state.index]?.name);
 
     const [driverState, driverDispatch] = useReducer<DriverReducerType>(driverStateReducer, {
-        currentLocation: { latitude: 42.67116, longitude: -83.21659, address: null },
+        currentLocation: { latitude: 0, longitude: 0, address: null },
         destinations: storeService.getDestinations() ?? defaultDestinations,
-        direction: { degrees: 50 }
+        direction: { degrees: 0 }
     });
 
+    // Use ref to always have the latest destinations in interval
+    const destinationsRef = useRef(driverState.destinations);
     useEffect(() => {
+        destinationsRef.current = driverState.destinations;
+    }, [driverState.destinations]);
+
+    useEffect(() => {
+        console.log("DriverCtxProvider: Route name: ", routeName);
+
         switch (routeName) {
             case RouteName.Index:
+                sortDestinationByProximity();
                 break;
             case RouteName.Route:
+                sortDestinationByFastestRoute();
                 break;
             case RouteName.Settings:
                 break;
@@ -54,26 +65,44 @@ export function DriverCtxProvider({ children }: DriverCtxProviderProps) {
         });
     }, [driverState.destinations]);
 
+    // Store interval ID in a ref so it can be reset
+    const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+    const locationServiceInstance = new LocationService();
+
+    // Poll function defined outside so it can be reused
+    const pollLocations = async () => {
+        const location = await locationServiceInstance.getCurrentLocation();
+        if (location) {
+            updateLocation(location);
+            const updatedDestinations = await updateDestinations(location, destinationsRef.current);
+            setDestinations(updatedDestinations);
+            if (routeName === RouteName.Index) {
+                sortDestinationByProximity();
+            }
+            if (routeName === RouteName.Route) {
+                sortDestinationByFastestRoute();
+            }
+        }
+    };
+
+    // Function to reset the poll interval and run pollLocations immediately
+    const resetAndPoll = () => {
+        if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current);
+        }
+        pollLocations();
+        pollIntervalRef.current = setInterval(pollLocations, 5000);
+    };
+
     useEffect(() => {
-        const locationService = new LocationService();
-        const pollLocations = async () => {
-            const location = await locationService.getCurrentLocation();
-            if (location) {
-                updateLocation(location);
-                // broken because not including driverState in the dependencies list
-                // setDestinations(await updateDestinations(driverState.currentLocation, driverState.destinations));
+        resetAndPoll();
+        return () => {
+            if (pollIntervalRef.current) {
+                clearInterval(pollIntervalRef.current);
             }
         };
-
-        pollLocations();
-        const interval = setInterval(() => {
-            pollLocations();
-        }, 10000);
-
-        return () => {
-            clearInterval(interval);
-        };
-    }, []);
+    }, [routeName]);
 
     function updateLocation(location: Location) {
         driverDispatch({ type: DriverActionTypes.UPDATE_LOCATION, payload: location });
@@ -95,6 +124,7 @@ export function DriverCtxProvider({ children }: DriverCtxProviderProps) {
         };
 
         driverDispatch({ type: DriverActionTypes.ADD_DESTINATION, payload: destination });
+        resetAndPoll();
     }
     function removeDestination(address: string) {
         driverDispatch({ type: DriverActionTypes.REMOVE_DESTINATION, payload: { address } });
@@ -114,6 +144,7 @@ export function DriverCtxProvider({ children }: DriverCtxProviderProps) {
             type: DriverActionTypes.UPDATE_DESTINATION,
             payload: { oldAddress, updatedData: destination }
         });
+        resetAndPoll();
     }
     function sortDestinationByProximity() {
         driverDispatch({ type: DriverActionTypes.SORT_DEST_BY_PROXIMITY });
