@@ -279,7 +279,7 @@ export async function updateDestinations(currLocation: Location, destinations: D
 
 export function getGoogleMapsDirectionsUrl(addresses: string[]): string {
     // Limit to 20 addresses for Google Maps
-    const cappedAddresses = addresses.splice(1, 20);
+    const cappedAddresses = addresses.splice(0, 20);
 
     const baseUrl = "https://www.google.com/maps/dir/";
     const encodedAddresses = cappedAddresses.map(encodeURIComponent).join("/");

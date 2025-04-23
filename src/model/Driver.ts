@@ -81,6 +81,6 @@ export function getFastestRoute(currentLocation: Location, destinations: Destina
 export function sortDestinationsByFastestRoute(self: Driver): Driver {
     const sorted = getFastestRoute(self.currentLocation, self.destinations);
     const withCumulative = addCumulativeDistance(sorted);
-    console.log(withCumulative);
+
     return { ...self, destinations: withCumulative };
 }
