@@ -1,0 +1,17 @@
+{
+  "extends": "./frontend/node_modules/expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "baseUrl": "./frontend",
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": [
+    "frontend/**/*.ts",
+    "frontend/**/*.tsx",
+    ".expo/types/**/*.ts",
+    "frontend/expo-env.d.ts",
+    "frontend/app.config.js"
+  ]
+}
