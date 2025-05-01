@@ -1,0 +1,17 @@
+{
+  "extends": "./node_modules/expo/tsconfig.base",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    },
+    "strict": true
+  },
+  "include": [
+    ".",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
+  ]
+}

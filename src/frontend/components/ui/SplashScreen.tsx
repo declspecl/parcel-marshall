@@ -45,7 +45,7 @@ const SplashScreen = ({ onFinish }: SplashScreenProps) => {
     return (
         <Animated.View style={[styles.animatedContainer, { opacity: fadeAnim }]}>
             <Animated.Image
-                source={require("../../../assets/images/logo.png")}
+                source={require("@/assets/images/logo.png")}
                 style={[
                     styles.logo,
                     { transform: [{ scale: pulseAnim }] } // ✨ apply pulse
